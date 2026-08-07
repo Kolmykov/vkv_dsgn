@@ -1,0 +1,26 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="2589" height="1400" viewBox="0 0 2589 1400" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="hero_glow" filter="url(#filter0_f_0_4)">
+<circle id="Glow Green" cx="610" cy="790" r="550" fill="url(#paint0_radial_0_4)"/>
+<circle id="Glow Teal" cx="1378" cy="675" r="600" fill="url(#paint1_radial_0_4)"/>
+<path id="Glow Blue" d="M2529 635C2529 952.564 2271.56 1210 1954 1210C1636.44 1210 1379 952.564 1379 635C1379 317.436 1636.44 60 1954 60C2271.56 60 2529 317.436 2529 635Z" fill="url(#paint2_radial_0_4)"/>
+</g>
+<defs>
+<filter id="filter0_f_0_4" x="0" y="0" width="2589" height="1400" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="30" result="effect1_foregroundBlur_0_4"/>
+</filter>
+<radialGradient id="paint0_radial_0_4" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(610 790) scale(550)">
+<stop stop-color="#D4E2B4" stop-opacity="0.55"/>
+<stop offset="0.45" stop-color="#D4E2B4" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="paint1_radial_0_4" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1378 675) scale(600)">
+<stop stop-color="#AAD6D2" stop-opacity="0.5"/>
+<stop offset="0.5" stop-color="#AAD6D2" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="paint2_radial_0_4" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1954 635) scale(575)">
+<stop stop-color="#B4C8E6" stop-opacity="0.45"/>
+<stop offset="0.5" stop-color="#B4C8E6" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>
