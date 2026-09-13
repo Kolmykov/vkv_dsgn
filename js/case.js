@@ -300,6 +300,46 @@ window.scrollTo(0, 0);
   update();
 })();
 
+// Слайдер "до/после" (Бауцентр, раздел "Анализ") — перетаскиванием мышью
+// или пальцем открывается редизайн поверх старого сайта. Двигаем только
+// CSS-переменную --compare-pct (её уже использует clip-path слоя "после"
+// и position делителя/ручки, см. case.css) — сами картинки не трогаем.
+// setPointerCapture держит драг активным, даже если курсор на скорости
+// выскочил за пределы блока — иначе он "отпускался" на границе.
+(function () {
+  var compare = document.querySelector('.case-compare');
+  if (!compare) return;
+
+  function setPct(pct) {
+    if (pct < 0) pct = 0;
+    if (pct > 100) pct = 100;
+    compare.style.setProperty('--compare-pct', pct + '%');
+  }
+
+  function updateFromEvent(e) {
+    var rect = compare.getBoundingClientRect();
+    setPct(((e.clientX - rect.left) / rect.width) * 100);
+  }
+
+  var dragging = false;
+
+  compare.addEventListener('pointerdown', function (e) {
+    dragging = true;
+    compare.setPointerCapture(e.pointerId);
+    updateFromEvent(e);
+  });
+  compare.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    updateFromEvent(e);
+  });
+  compare.addEventListener('pointerup', function () {
+    dragging = false;
+  });
+  compare.addEventListener('pointercancel', function () {
+    dragging = false;
+  });
+})();
+
 // Плавающее меню (бургер + Telegram) — та же кнопка, что и на главной, но
 // здесь она не появляется/прячется по скроллу (в кейсе нет хедера, из-под
 // которого она выныривает на главной) — она видна с самого начала и просто

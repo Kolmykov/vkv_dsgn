@@ -287,6 +287,57 @@ body {
   pointer-events: none;
 }
 
+/* ---------- слайдер "до/после" (Бауцентр, Анализ) ---------- */
+/* .case-compare — тот же .case-shot снизу (это и есть слой "до"), сверху
+   абсолютно спозиционирован .case-compare__after с тем же скриншотом
+   "после" и clip-path, который открывает его слева направо до отметки
+   --compare-pct. Курсор/палец двигают именно эту переменную (см. case.js) —
+   меняется только clip-path и позиция делителя с ручкой, сами картинки
+   не двигаются и не перерисовываются. */
+.case-compare {
+  --compare-pct: 50%;
+  cursor: ew-resize;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.case-compare__after {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  clip-path: inset(0 calc(100% - var(--compare-pct)) 0 0);
+}
+.case-compare__divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--compare-pct);
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--color-bg);
+  pointer-events: none;
+}
+.case-compare__handle {
+  position: absolute;
+  top: 50%;
+  left: var(--compare-pct);
+  width: 48px;
+  height: 48px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+.case-compare__handle svg {
+  width: 20px;
+  height: 20px;
+}
+
 /* Проявление текста по скролу (.js-scroll-reveal — общий класс, см.
    styles.css) — на кейсах ускоряем: страницы длинные и с "быстрым" 0.8s
    из styles.css при обычной скорости скролла получались пустые паузы
