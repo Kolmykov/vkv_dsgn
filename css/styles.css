@@ -697,8 +697,17 @@ img {
 .card__media--2 { height: 462px; }
 .card__media--3 { height: 386px; }
 /* У Cargo Pulse ещё нет скриншотов (проект в разработке) — вместо
-   картинки плашка цвета границы, как в самой Figma. */
-.card__media--4 { height: 533px; background: var(--color-border-divider); }
+   картинки сам блок целиком — skeleton-плашка с бегущим шиммером. */
+.card__media--4 {
+  height: 533px;
+  background: linear-gradient(90deg, #e4e4e4 25%, #f1f1f1 50%, #e4e4e4 75%);
+  background-size: 200% 100%;
+  animation: card-skel-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes card-skel-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 
 .card__media-img--cover {
   position: absolute;
