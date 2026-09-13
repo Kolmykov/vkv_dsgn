@@ -699,7 +699,7 @@ img {
 /* У Cargo Pulse ещё нет скриншотов (проект в разработке) — вместо
    картинки сам блок целиком — skeleton-плашка с бегущим шиммером. */
 .card__media--4 {
-  height: 533px;
+  height: 386px;
   background: linear-gradient(90deg, #e4e4e4 25%, #f1f1f1 50%, #e4e4e4 75%);
   background-size: 200% 100%;
   animation: card-skel-shimmer 1.4s ease-in-out infinite;
