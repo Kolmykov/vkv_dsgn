@@ -32,6 +32,12 @@
 
 html {
   scroll-behavior: smooth;
+  /* Место под скроллбар зарезервировано всегда. Нужно для блокировки
+     скролла при открытом меню (overflow:hidden в script.js): без этого
+     скроллбар пропадает, ширина вьюпорта скачет на ~15px и всё
+     съезжает — в том числе плавающее меню, спозиционированное fixed
+     по центру экрана. */
+  scrollbar-gutter: stable;
 }
 
 html, body {
@@ -113,6 +119,11 @@ img {
   top: -299px;
   width: 1920px;
   height: 218px;
+  /* Чисто декоративный слой — не должен перехватывать клики у контента
+     под собой (см. тот же фикс у .footer-glow: там он реально ловил
+     клики по тексту "Обо мне", потому что отрицательный inset у ::inner
+     раздувает картинку далеко за пределы этого блока). */
+  pointer-events: none;
 }
 
 .hero-glow__inner {
@@ -657,6 +668,14 @@ img {
   align-items: flex-start;
   gap: var(--space-200);
   width: 600px;
+  /* У ссылок (SkoutAI/Бауцентр — <a>) браузер по умолчанию сам перетаскивает
+     ссылку как объект (можно перенести в закладки и т.п.) — это перехватывает
+     mousemove и ломает наш drag-to-scroll ленты (см. script.js), поэтому у
+     карточки-статьи (Инвестколлекция, без этого поведения) перетаскивание
+     работало, а у ссылочных — нет. draggable="false" в HTML — основной
+     фикс, здесь дублируем для WebKit/Blink. */
+  -webkit-user-drag: none;
+  user-drag: none;
 }
 
 .card__visual {
@@ -842,6 +861,10 @@ img {
   font-size: 30px;
   line-height: normal;
   color: var(--color-text-secondary);
+  /* .about целиком запрещает выделение (заголовок это оформление) — этот
+     текст, наоборот, должен выделяться и копироваться. */
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .about__facts {
@@ -900,6 +923,9 @@ img {
   font-size: 20px;
   line-height: normal;
   color: var(--color-text-secondary);
+  /* Подпись ("Опыт", "Инструменты"...) — оформление, не контент: остаётся
+     невыделяемой, как и весь .about. А вот значение рядом (.fact-item__value
+     ниже) — реальный текст, его выделение специально разрешено. */
 }
 
 .fact-item__value {
@@ -909,6 +935,8 @@ img {
   font-size: 18px;
   line-height: normal;
   color: var(--color-text-primary);
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 /* Текст факта проявляется только после того, как линия над ним дочертится. */
@@ -931,6 +959,9 @@ img {
   top: 2404px;
   width: 1920px;
   padding: 40px;
+  /* Как .about — оформление/навигация, не контент для копирования. */
+  user-select: none;
+  -webkit-user-select: none;
 }
 .footer::before {
   content: '';
@@ -954,6 +985,10 @@ img {
   top: 69px;
   width: 1920px;
   height: 218px;
+  /* Без этого картинка (раздутая отрицательным inset у ::inner далеко за
+     пределы этого блока) перехватывала клики по тексту "Обо мне" над
+     футером — там не работало выделение текста. */
+  pointer-events: none;
 }
 
 .footer-glow__inner {
@@ -1003,6 +1038,10 @@ img {
 .footer-brand__mark {
   width: 113px;
   height: 47px;
+  /* Как .card__media-img на главной: клик проходит насквозь (на сам
+     <a href="#hero">.footer-brand), логотип нельзя выделить/сохранить
+     через контекстное меню. */
+  pointer-events: none;
 }
 
 .footer-brand__suffix {
@@ -1172,6 +1211,10 @@ img {
   transform: translate(-50%, -50%);
   width: 80px;
   height: 80px;
+  /* Как остальные картинки сайта — не должен выделяться/перетаскиваться. */
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
   border-radius: 50%;
 }
 
@@ -1215,4 +1258,242 @@ img {
 .copyright__sep {
   width: 3px;
   height: 3px;
+}
+
+/* ---------- float-menu ---------- */
+/* Плавающий бургер + Telegram-кнопка: живёт вне .page, но масштабируется
+   тем же коэффициентом --page-scale, что и весь макет (см. fit() в
+   script.js) — иначе на узких окнах эта кнопка визуально крупнее всего
+   остального, хотя в Фигме она такого же 59px размера, как и остальные
+   элементы 1920px-канвы. Появляется, когда шапочное меню (.header-nav)
+   уходит за пределы экрана при скролле — см. IntersectionObserver в
+   script.js. */
+/* Подложка под раскрытым меню: слегка размывает страницу и перехватывает
+   клик мимо меню (закрытие обрабатывает document-хендлер в script.js).
+   Отдельным слоем, а не фильтром на .stage — иначе блюр пришлось бы
+   накладывать на всю прокручиваемую страницу целиком. */
+.float-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  opacity: 0;
+  pointer-events: none;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  transition: opacity 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.float-menu-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.float-menu {
+  position: fixed;
+  /* 40px — как отступы хедера (top/left:40px) внутри .page: там это
+     значение того же 1920px-макета, которое сжимается вместе со всей
+     страницей через --page-scale. Тут элемент лежит вне .page, поэтому
+     тот же эффект приходится повторять вручную через calc(). */
+  bottom: calc(40px * var(--page-scale, 1));
+  left: 50%;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  pointer-events: none;
+  translate: -50% 12px;
+  scale: var(--page-scale, 1);
+  transform-origin: bottom center;
+  transition: opacity 0.3s cubic-bezier(0.65, 0, 0.35, 1), translate 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+  /* Бургер + выпадающее меню + кнопка Telegram — навигация, не контент. */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.float-menu.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  translate: -50% 0;
+}
+
+.float-menu__toggle-wrap {
+  position: relative;
+}
+
+.float-menu__toggle {
+  width: 59px;
+  height: 59px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  /* Обводка нарисована внутренней тенью, а не border: border-width
+     браузер округляет до целых физических пикселей ДО применения scale()
+     на .float-menu, поэтому "1px" превращается в 0.66 реального пикселя —
+     тоньше и бледнее полосок бургера. box-shadow не округляется и берёт
+     ту же компенсированную переменную, что и полоски (см. fit() в
+     script.js), поэтому обводка выходит ровно в 1 реальный пиксель. */
+  box-shadow: inset 0 0 0 var(--fm-hairline, 1px) var(--color-border-divider);
+  /* Без этого у <button> остаётся дефолтный бордер браузера в 2px. */
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.float-menu__icon {
+  position: relative;
+  display: block;
+  width: 25px;
+  height: calc(var(--fm-bar-gap, 9.25px) * 2 + var(--fm-hairline, 1px));
+}
+/* Гамбургер трансформируется в крестик: полоски — обычные span'ы, позиция
+   (top) и поворот (transform) анимируются независимо, поэтому не нужно
+   вычислять общую точку вращения в одной transform-матрице (на SVG-линиях
+   это было хрупко и разъезжалось в шеврон). Крайние полоски сначала
+   съезжаются на место средней (top), затем крутятся на ±45° каждая вокруг
+   своего же центра — получается ровный крестик. Тайминг 0.2s — как у
+   .js-modal__iconLine на kei-inc.jp. */
+.float-menu__bar {
+  position: absolute;
+  left: 0;
+  width: 25px;
+  /* Толщина и шаг приходят из fit() в script.js: там они округлены так,
+     чтобы после scale() на .float-menu лечь ровно на целые физические
+     пиксели. Без этого у каждой полоски своя дробная фаза пиксельной
+     сетки и они выглядят разной толщины (то же семейство багов, что было
+     с линией в футере, см. .footer::before). */
+  height: var(--fm-hairline, 1px);
+  border-radius: calc(var(--fm-hairline, 1px) / 2);
+  background: var(--color-text-primary);
+  transform: translateZ(0);
+  transition: top 0.2s, transform 0.2s, opacity 0.2s;
+}
+.float-menu__bar--1 {
+  top: 0;
+}
+.float-menu__bar--2 {
+  top: var(--fm-bar-gap, 9.25px);
+}
+.float-menu__bar--3 {
+  top: calc(var(--fm-bar-gap, 9.25px) * 2);
+}
+.float-menu.is-open .float-menu__bar--1 {
+  top: var(--fm-bar-gap, 9.25px);
+  transform: rotate(45deg) translateZ(0);
+}
+.float-menu.is-open .float-menu__bar--2 {
+  opacity: 0;
+}
+.float-menu.is-open .float-menu__bar--3 {
+  top: var(--fm-bar-gap, 9.25px);
+  transform: rotate(-45deg) translateZ(0);
+}
+
+.float-menu__telegram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Высота задана явно, чтобы совпадать с квадратной кнопкой бургера:
+     раньше её добирал 2px-бордер, а обводка теперь рисуется тенью и в
+     размер не входит. */
+  height: 59px;
+  padding: 0 30px;
+  background: var(--color-bg);
+  /* Обводка тенью, а не border — см. комментарий в .float-menu__toggle. */
+  box-shadow: inset 0 0 0 var(--fm-hairline, 1px) var(--color-border-divider);
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 22px;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+/* Подчёркивание — только под текстом и стрелкой, не во всю кнопку (как
+   у Telegram/CV в футере): кликабельная зона с паддингом на .float-menu__
+   telegram, а .underline-link — на внутренней обёртке впритык к контенту. */
+.float-menu__telegram-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.float-menu__arrow {
+  width: 14.75px;
+  height: 15.06px;
+  transform: rotate(135deg);
+}
+
+/* Панель раскрывается вверх от кнопки и растёт из неё — тот же приём, что
+   и .js-modal__animeTrigger на kei-inc.jp: scale 0→1 из точки bottom
+   center, 0.3s cubic-bezier(.16,1,.3,1) (их --default-transition-timing-
+   function). */
+.float-menu__dropdown {
+  position: absolute;
+  /* Тот же зазор, что между бургером и Telegram (gap у .float-menu). */
+  bottom: calc(100% + 6px);
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+  padding: 10px;
+  background: var(--color-bg);
+  /* Обводка тенью, а не border — см. комментарий в .float-menu__toggle. */
+  box-shadow: inset 0 0 0 var(--fm-hairline, 1px) var(--color-border-divider);
+  border-radius: 10px;
+  translate: -50% 0;
+  scale: 0;
+  transform-origin: bottom center;
+  pointer-events: none;
+  transition: scale 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.float-menu__dropdown.is-open {
+  scale: 1;
+  pointer-events: auto;
+}
+/* Пункты появляются по очереди — тот же keyframe fadeInSlide и та же
+   кривая --slide-ease: cubic-bezier(.33,1,.68,1), что и .js-modal__item на
+   kei-inc.jp; задержка на каждый пункт (80ms * индекс) выставляется
+   инлайново в script.js. */
+@keyframes float-menu-item-in {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.float-menu__dropdown-item {
+  display: flex;
+  justify-content: center;
+  padding: 12px 14px;
+  border-radius: 4px;
+  opacity: 0;
+}
+/* Подчёркивание впритык к слову, а не во всю ширину пункта — та же
+   логика, что и у .float-menu__telegram-inner выше. */
+.float-menu__dropdown-item-inner {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  color: var(--color-text-primary);
+}
+/* Пункт "CV" — со стрелочкой, как в футере (.footer-links__item--cv):
+   тот же .float-menu__arrow (см. кнопку Telegram выше) и тот же зазор
+   6px, что у футера, а не 10px, как у Telegram здесь же в меню. */
+.float-menu__dropdown-item-inner--cv {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.float-menu__dropdown.is-open .float-menu__dropdown-item {
+  animation: float-menu-item-in 1.2s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+  animation-delay: var(--item-delay, 0s);
 }

@@ -6,6 +6,28 @@ if ('scrollRestoration' in history) {
 }
 window.scrollTo(0, 0);
 
+// Флаг ставится в case.js по клику на "Все проекты" в кейсе: раз человек
+// только что видел главную (пришёл с неё), незачем повторно проигрывать
+// лоадер и печатающийся заголовок — сразу показываем готовую страницу
+// (см. SKIP_INTRO ниже, в блоке лоадера и revealHeroInstant()).
+var SKIP_INTRO = false;
+try {
+  SKIP_INTRO = sessionStorage.getItem('skipIntro') === '1';
+  sessionStorage.removeItem('skipIntro');
+} catch (e) {}
+
+// #projects в адресе — сохраняем и сразу убираем из URL: иначе браузен
+// сам, независимо от нашего JS (и в произвольный момент — иногда уже
+// после того, как мы прокрутили куда нужно), долистает до элемента с этим
+// id своим штатным выравниванием (по верху), а не тем центрированием,
+// что при клике на "Проекты" в шапке/бургере (см. ниже). Сам скролл к
+// секции делаем позже, в блоке лоадера.
+var SKIP_INTRO_HASH = '';
+if (SKIP_INTRO && location.hash) {
+  SKIP_INTRO_HASH = location.hash;
+  history.replaceState(null, '', location.pathname + location.search);
+}
+
 // Печатающийся текст заголовка hero: печатает фразу по одному символу
 // каждые ~55мс, курсор (.caret) продолжает мигать на месте после того,
 // как печать закончилась. Подзаголовок ("3 года в дизайне...") появляется
@@ -80,6 +102,19 @@ function revealHero() {
       startTypewriter();
     }
   });
+}
+
+// Конечное состояние revealHero()+startTypewriter(), без построчной печати
+// и без пауз между элементами — используется вместо revealHero(), когда
+// SKIP_INTRO включён (пришли с "Все проекты" из кейса).
+function revealHeroInstant() {
+  document.querySelectorAll('.js-reveal').forEach(function (el) {
+    el.classList.add('is-visible');
+  });
+  var textEl = document.getElementById('hero-title-text');
+  if (textEl) textEl.textContent = 'Дизайн, который решает задачи бизнеса';
+  var link = document.querySelector('.fx-decoder');
+  if (link) link.classList.add('is-ready');
 }
 
 // Появление остальных секций (projects/about/footer) при скролле: пока
@@ -210,15 +245,73 @@ function revealHero() {
   var loader = document.getElementById('loader');
   if (!loader) return;
 
+  // Пока лоадер на экране — жёстко блокируем скролл. Одного
+  // overflow:hidden на html оказалось недостаточно: колесо/тачпад
+  // продолжают копить дельту скролла, пока лоадер показан, и в момент
+  // снятия блокировки браузер применяет всю накопленную дельту разом —
+  // страница улетает сразу в футер вместо того, чтобы просто не
+  // реагировать на скролл. position:fixed на body убирает документ из
+  // потока скролла целиком — копить нечему в принципе, а не просто
+  // визуально "не даёт". Место под скроллбар зарезервировано постоянно
+  // (scrollbar-gutter на html, см. styles.css), поэтому блокировка не
+  // сдвигает контент по горизонтали.
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.top = '0';
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  function unlockScroll() {
+    document.documentElement.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+  }
+
+  if (SKIP_INTRO) {
+    loader.style.display = 'none';
+    unlockScroll();
+    revealHeroInstant();
+    // "Все проекты" в кейсе ведёт на #projects — клик по "Проекты" в
+    // шапке/бургере (см. ниже, блок с .header-nav__item) центрирует секцию
+    // (block: 'center'), а не выравнивает по верху. Раз результат должен
+    // выглядеть одинаково независимо от способа перехода, повторяем то же
+    // самое здесь. Дёргаем сразу и ещё раз после полной загрузки (картинки
+    // выше secции могут досчитать высоту и сдвинуть её положение).
+    if (SKIP_INTRO_HASH === '#projects') {
+      var projectsSection = document.getElementById('projects');
+      if (projectsSection) {
+        var centerProjects = function () {
+          projectsSection.scrollIntoView({ behavior: 'auto', block: 'center' });
+        };
+        // Сразу вызывать бесполезно: страница только что распарсилась,
+        // layout ещё не устоялся (особенно на длинной scale()-странице), и
+        // scrollIntoView в этот момент молча не срабатывает. Два кадра
+        // подряд гарантируют, что раскладка уже посчитана, плюс подстраховка
+        // после полной загрузки (картинки/шрифты могли сдвинуть высоту).
+        requestAnimationFrame(function () {
+          requestAnimationFrame(centerProjects);
+        });
+        window.addEventListener('load', centerProjects);
+      }
+    }
+    return;
+  }
+
   var MIN_DURATION = 2000;
   var startTime = performance.now();
   var pageLoaded = false;
 
   function hideLoader() {
     loader.classList.add('is-hidden');
+    // Разблокируем скролл только когда круговой reveal (1.4s, см. .loader
+    // в css) реально закончился, а не в момент старта анимации — иначе
+    // почти полторы секунды экран ещё визуально закрыт лоадером, а
+    // прокрутить страницу за ним уже можно.
     loader.addEventListener('transitionend', function handler() {
       loader.style.display = 'none';
       loader.removeEventListener('transitionend', handler);
+      unlockScroll();
       revealHero();
     }, { once: true });
   }
@@ -256,17 +349,50 @@ function revealHero() {
   var page = document.querySelector('.page');
   var stage = document.querySelector('.stage');
 
+  // Полоски бургера лежат внутри .float-menu, который отмасштабирован на
+  // scale(--page-scale). Из-за дробного масштаба края полосок попадают на
+  // дробные физические пиксели, причём у каждой полоски своя дробная часть
+  // (top 0 / 9.25 / 18.5 → 0.0 / 6.09 / 12.19 при scale 0.659): первая
+  // ложится ровно на сетку и рисуется чётко, остальные размазываются по
+  // двум рядам и выглядят тоньше. Поэтому толщину и шаг считаем здесь и
+  // подгоняем так, чтобы после масштабирования они были целым числом
+  // физических пикселей — тогда фаза сетки у всех трёх одинаковая.
+  function snapToDevicePx(targetCssPx, scale, dpr) {
+    var devicePx = Math.max(1, Math.round(targetCssPx * dpr));
+    return devicePx / dpr / scale;
+  }
+
   function fit() {
     var scale = Math.min(document.documentElement.clientWidth / FRAME_WIDTH, 1);
+    var dpr = window.devicePixelRatio || 1;
+    var root = document.documentElement;
 
     page.style.transform = 'scale(' + scale + ')';
     stage.style.width = FRAME_WIDTH * scale + 'px';
     stage.style.height = FRAME_HEIGHT * scale + 'px';
-    document.documentElement.style.setProperty('--page-scale', scale);
+    root.style.setProperty('--page-scale', scale);
+    // --fm-hairline — 1 реальный CSS-пиксель (полоски бургера и обводки
+    // кнопок), --fm-bar-gap — шаг между полосками (9.25px макета); оба
+    // округлены до целых физических пикселей (см. комментарий выше).
+    root.style.setProperty('--fm-hairline', snapToDevicePx(1, scale, dpr) + 'px');
+    root.style.setProperty('--fm-bar-gap', snapToDevicePx(9.25 * scale, scale, dpr) + 'px');
   }
 
   fit();
   window.addEventListener('resize', fit);
+
+  // Зум браузера меняет devicePixelRatio — от него зависит округление
+  // толщины полосок бургера, поэтому пересчитываем и по нему тоже
+  // (resize при зуме приходит не во всех сценариях, например при переносе
+  // окна на монитор с другой плотностью).
+  function watchDpr() {
+    var mq = window.matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)');
+    mq.addEventListener('change', function () {
+      fit();
+      watchDpr();
+    }, { once: true });
+  }
+  watchDpr();
 })();
 
 // Клик по пунктам меню в хедере и по логотипу в футере: свой сценарий
@@ -279,7 +405,7 @@ function revealHero() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  var links = document.querySelectorAll('.header-nav__item');
+  var links = document.querySelectorAll('.header-nav__item, .js-nav-scroll');
 
   links.forEach(function (link) {
     link.addEventListener('click', function (e) {
@@ -549,4 +675,78 @@ function revealHero() {
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll, { passive: true });
   updateParallax();
+})();
+
+// Плавающее меню (бургер + Telegram): появляется, когда меню в шапке
+// (.header-nav) уходит за пределы экрана при скролле вниз, и прячется
+// обратно, когда шапка снова видна.
+(function () {
+  var floatMenu = document.getElementById('float-menu');
+  var headerNav = document.querySelector('.header-nav');
+  if (!floatMenu || !headerNav) return;
+
+  var toggle = document.getElementById('float-menu-toggle');
+  var dropdown = document.getElementById('float-menu-dropdown');
+  if (!toggle || !dropdown) return;
+
+  var backdrop = document.getElementById('float-menu-backdrop');
+
+  var dropdownItems = dropdown.querySelectorAll('.float-menu__dropdown-item');
+  // Задержка на каждый пункт — 80ms * индекс, как у .js-modal__item на
+  // kei-inc.jp; сама CSS-анимация запускается/сбрасывается классом is-open.
+  dropdownItems.forEach(function (item, i) {
+    item.style.setProperty('--item-delay', i * 80 + 'ms');
+  });
+
+  // Пока меню открыто, страница не скроллится. Ничего не съезжает, потому
+  // что место под скроллбар зарезервировано постоянно — scrollbar-gutter
+  // на html (см. styles.css).
+  function setScrollLock(locked) {
+    document.documentElement.style.overflow = locked ? 'hidden' : '';
+  }
+
+  function setOpen(isOpen) {
+    floatMenu.classList.toggle('is-open', isOpen);
+    dropdown.classList.toggle('is-open', isOpen);
+    if (backdrop) backdrop.classList.toggle('is-open', isOpen);
+    dropdown.setAttribute('aria-hidden', String(!isOpen));
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    setScrollLock(isOpen);
+  }
+
+  function closeDropdown() {
+    setOpen(false);
+  }
+
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          // Когда шапка снова видна, меню прячется — заодно закрываем
+          // выпадашку, иначе при следующем появлении (шапка опять уйдёт
+          // за экран) меню вылезет уже открытым, минуя закрытое состояние.
+          if (entry.isIntersecting) closeDropdown();
+          floatMenu.classList.toggle('is-visible', !entry.isIntersecting);
+        });
+      },
+      { threshold: 0 }
+    );
+    observer.observe(headerNav);
+  }
+
+  toggle.addEventListener('click', function (e) {
+    e.stopPropagation();
+    setOpen(!dropdown.classList.contains('is-open'));
+  });
+
+  // Все пункты выпадашки закрывают её по клику, не только якорные
+  // js-nav-scroll — CV (PDF, новая вкладка) якорем не является, но
+  // после клика по нему меню тоже должно закрыться.
+  dropdown.querySelectorAll('a').forEach(function (link) {
+    link.addEventListener('click', closeDropdown);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!floatMenu.contains(e.target)) closeDropdown();
+  });
 })();

@@ -1,0 +1,333 @@
+/* Страницы кейсов — точная копия фигма-фрейма (тот же приём, что на
+   главной): .case-page — фрейм 1920xH в исходном размере, масштабируется
+   под ширину окна через CSS zoom (см. fit() в case.js). На таких длинных
+   страницах (кейсы — десятки тысяч px из-за реальных скриншотов) transform:
+   scale(), как на главной, сжимает уже отрисованный слой и на некоторых
+   GPU упирается в лимит размера текстуры — часть страницы рендерится белой.
+   zoom меняет фактический лейаут ДО отрисовки, этой проблемы нет. Разметка
+   внутри не меняется от масштаба — экспортирована 1:1 из Figma. */
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+.case-page {
+  position: relative;
+  width: 1920px;
+  background: var(--color-bg);
+}
+
+/* ---------- nav (сайдбар слева) ---------- */
+/* Живёт ВНЕ .case-page (см. case.js/HTML) и масштабируется своим
+   transform: scale(--case-scale) — тем же приёмом, что .float-menu на
+   главной, а не унаследованным от .case-page zoom. У zoom при дробном
+   масштабе тонкие линии (напр. ::after подчёркивания) укладываются на
+   дробный физический пиксель и после анимации "доедают" толщину при
+   перерастеризации; transform-scale просто растягивает уже отрисованный
+   слой, как на главной странице, — там с этим проблем нет. */
+
+.case-nav {
+  position: fixed;
+  z-index: 10;
+  left: calc(40px * var(--case-scale, 1));
+  top: calc(40px * var(--case-scale, 1));
+  width: 200px;
+  transform-origin: top left;
+  transform: scale(var(--case-scale, 1));
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  /* Как .about на главной — меню это навигация/оформление, не контент
+     для копирования. */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.case-nav__back {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+}
+.case-nav__back-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.case-nav__back-icon path {
+  transition: stroke 0.2s ease;
+}
+.case-nav__back-text {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: normal;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+.case-nav__back:hover .case-nav__back-text {
+  color: var(--color-text-primary);
+}
+.case-nav__back:hover .case-nav__back-icon path {
+  stroke: var(--color-text-primary);
+}
+
+.case-nav__list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  /* Сам список пунктов сдвинут на 40px правее "Все проекты" (в сумме
+     80px от левого края страницы, "Все проекты" остаётся на 40px) —
+     см. правку в Figma, узел case-skoutai. */
+  margin-left: 40px;
+}
+.case-nav__link {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: normal;
+  color: var(--color-text-secondary);
+  /* opacity/filter — не лишние: пункты меню участвуют в каскаде появления
+     (.js-reveal, см. case.js), а эта запись идёт в каскаде позже и иначе
+     перебила бы transition из .js-reveal — проявление стало бы мгновенным. */
+  transition:
+    color 0.2s ease,
+    opacity 0.7s cubic-bezier(0.65, 0, 0.35, 1),
+    filter 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.case-nav__link:hover {
+  color: var(--color-text-primary);
+}
+.case-nav__link.is-active {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+/* ---------- стрелка перехода к соседнему проекту ---------- */
+/* Зафиксирована на экране, прибита к низу с отступом 40px, появляется
+   после того как страницу немного прокрутили (см. case.js). Цвет в покое —
+   ровно как в Figma (#767676, 14% непрозрачности), при наведении — сплошной
+   text/primary. --next стоит у правого края и ведёт вперёд, --prev — у
+   левого и ведёт назад; иконка одна и та же, у --prev просто не отражена. */
+
+.case-project-nav {
+  position: fixed;
+  z-index: 10;
+  bottom: calc(40px * var(--case-scale, 1));
+  width: 80px;
+  height: 80px;
+  transform: scale(var(--case-scale, 1));
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+}
+.case-project-nav.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+.case-project-nav svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.case-project-nav path {
+  stroke: #767676;
+  stroke-opacity: 0.14;
+  transition: stroke 0.2s ease, stroke-opacity 0.2s ease;
+}
+.case-project-nav:hover path {
+  stroke: var(--color-text-primary);
+  stroke-opacity: 1;
+}
+.case-project-nav--next {
+  right: calc(170px * var(--case-scale, 1));
+  transform-origin: bottom right;
+}
+.case-project-nav--next svg {
+  transform: scaleX(-1);
+}
+.case-project-nav--prev {
+  left: calc(170px * var(--case-scale, 1));
+  transform-origin: bottom left;
+}
+
+/* ---------- контентная колонка ---------- */
+
+.case-content {
+  position: absolute;
+  left: 420px;
+  top: 40px;
+  width: 1080px;
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+}
+
+.case-section {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+}
+
+.case-hero__title {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 40px;
+  line-height: normal;
+  color: var(--color-text-primary);
+  width: 100%;
+}
+
+.case-section__title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 40px;
+  line-height: normal;
+  color: var(--color-text-secondary);
+  width: 100%;
+}
+
+.case-body-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.case-body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: normal;
+  color: var(--color-text-primary);
+  width: 100%;
+}
+.case-body b,
+.case-label {
+  font-weight: 500;
+}
+.case-label {
+  font-family: var(--font-sans);
+  font-size: 24px;
+  line-height: normal;
+  color: var(--color-text-primary);
+  width: 100%;
+}
+
+.case-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.case-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.case-list li {
+  position: relative;
+  padding-left: 36px;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: normal;
+  color: var(--color-text-primary);
+}
+.case-list li::before {
+  content: '\2022';
+  position: absolute;
+  left: 14px;
+}
+.case-list--numbered {
+  counter-reset: case-num;
+}
+.case-list--numbered li::before {
+  counter-increment: case-num;
+  content: counter(case-num) '.';
+  left: 0;
+}
+
+.case-shot {
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.case-shot__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Как .card__media-img на главной: клик проходит насквозь, поэтому
+     "сохранить картинку" через контекстное меню не работает. */
+  pointer-events: none;
+}
+.case-shot__crop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.case-shot__crop img {
+  position: absolute;
+  max-width: none;
+  display: block;
+  pointer-events: none;
+}
+
+/* Проявление текста по скролу (.js-scroll-reveal — общий класс, см.
+   styles.css) — на кейсах ускоряем: страницы длинные и с "быстрым" 0.8s
+   из styles.css при обычной скорости скролла получались пустые паузы
+   перед ещё не проявившимся блоком (см. rootMargin в case.js — блок и так
+   стартует анимацию заранее, но ей самой тоже нужно быть короче). */
+.case-section.js-scroll-reveal,
+.case-screen.js-scroll-reveal {
+  transition-duration: 0.35s;
+}
+
+/* Параллакс на первом фото кейса (Обзор) — см. case.js. scale(1.12) даёт
+   запас по краям, чтобы сдвиг не оголял пустоту, тот же приём, что для
+   карточек проектов на главной. */
+.case-shot--parallax .case-shot__img,
+.case-shot--parallax .case-shot__crop img {
+  transform: translateY(var(--case-parallax-y, 0px)) scale(1.12);
+}
+
+/* ---------- плавающее меню (бургер + Telegram) ---------- */
+/* Разметка и большая часть стиля — общие с главной (.float-menu в
+   styles.css), здесь только то, что отличается. На главной масштаб и
+   отступ снизу считаются от --page-scale (переменная фрейма 1920x2745);
+   у кейса свой фрейм и своя переменная --case-scale — те же формулы,
+   просто от неё. Появление тоже другое: на главной меню всплывает по
+   скроллу, когда шапка уходит за экран (там есть что прятать); в кейсе
+   нет хедера, из-под которого оно выныривает — оно просто участвует в
+   общем каскаде появления при заходе на страницу (см. case.js: .float-menu
+   добавлен в cascade наравне с меню-навигацией), .is-visible ему
+   выставляет тот же код, что и остальным элементам каскада. */
+.float-menu {
+  bottom: calc(40px * var(--case-scale, 1));
+  scale: var(--case-scale, 1);
+}
+/* У самого низа страницы меню перекрывало последний абзац текста (оно
+   прибито к низу экрана фиксированной позицией, а не к низу страницы) —
+   прячем его, когда до конца контента остаётся меньше своей же высоты
+   (см. isNearBottom() в case.js). Специфичность та же, что у
+   .float-menu.is-visible в styles.css, но это правило идёт позже в
+   каскаде (case.css подключается после styles.css) — оно и побеждает. */
+.float-menu.is-near-bottom {
+  opacity: 0;
+  pointer-events: none;
+  translate: -50% 12px;
+}
