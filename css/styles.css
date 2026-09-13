@@ -696,6 +696,9 @@ img {
 .card__media--1 { height: 533px; }
 .card__media--2 { height: 462px; }
 .card__media--3 { height: 386px; }
+/* У Cargo Pulse ещё нет скриншотов (проект в разработке) — вместо
+   картинки плашка цвета границы, как в самой Figma. */
+.card__media--4 { height: 533px; background: var(--color-border-divider); }
 
 .card__media-img--cover {
   position: absolute;
@@ -718,10 +721,30 @@ img {
 
 /* 3D-наклон + блик на изображениях карточек проектов при наведении.
    .t-tilt — плоская зона наведения (сама не крутится, тут JS считает
-   позицию курсора), .t-tilt-card — то, что реально наклоняется,
-   .t-tilt-glare — блик, следующий за курсором. */
+   позицию курсора), .t-tilt-shift — параллакс-сдвиг при скролле,
+   .t-tilt-card — то, что реально наклоняется при наведении,
+   .t-tilt-glare — блик, следующий за курсором.
+
+   Параллакс (translateY) и наклон (rotate) специально разнесены по двум
+   вложенным элементам, а не на одном. .t-tilt-card обязан иметь СВОЙ
+   overflow:hidden + border-radius — без него на 3D-трансформе с
+   preserve-3d/perspective браузер иногда не применяет скругление внешнего
+   .card__media к этому потомку (свой слой рендера), и угол становится
+   квадратным. Но этот же элемент — тот, что двигается для параллакса:
+   если сдвигать по Y именно его, вместе с картинкой уезжает и его
+   собственная рамка обрезки, то есть визуально вся скруглённая карточка
+   целиком (баг, который чинили). Поэтому translateY — на отдельной
+   .t-tilt-shift без своего скругления/overflow (взять её нечему клипать),
+   а rotate/scale — на .t-tilt-card с собственным overflow:hidden. */
 .t-tilt {
   touch-action: none;
+}
+.t-tilt-shift {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform: translateY(var(--parallax-y, 0px));
+  will-change: transform;
 }
 .t-tilt-card {
   position: relative;
@@ -729,10 +752,10 @@ img {
   height: 100%;
   border-radius: var(--radius-xs);
   overflow: hidden;
-  /* scale(1.12) даёт запас по краям, чтобы параллакс-сдвиг (--parallax-y)
-     не оголял пустоту у границ карточки при скролле. */
+  /* scale(1.12) даёт запас по краям, чтобы параллакс-сдвиг (--parallax-y,
+     см. .t-tilt-shift выше) не оголял пустоту у границ карточки при
+     скролле. */
   transform:
-    translateY(var(--parallax-y, 0px))
     scale(1.12)
     perspective(var(--tilt-perspective))
     rotateX(var(--tilt-rx, 0deg))
@@ -760,6 +783,7 @@ img {
   opacity: var(--tilt-glare-opacity);
 }
 @media (prefers-reduced-motion: reduce) {
+  .t-tilt-shift,
   .t-tilt-card {
     transform: none !important;
     transition: none !important;

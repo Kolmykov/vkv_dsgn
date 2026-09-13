@@ -16,12 +16,13 @@ try {
   sessionStorage.removeItem('skipIntro');
 } catch (e) {}
 
-// #projects в адресе — сохраняем и сразу убираем из URL: иначе браузен
-// сам, независимо от нашего JS (и в произвольный момент — иногда уже
-// после того, как мы прокрутили куда нужно), долистает до элемента с этим
-// id своим штатным выравниванием (по верху), а не тем центрированием,
-// что при клике на "Проекты" в шапке/бургере (см. ниже). Сам скролл к
-// секции делаем позже, в блоке лоадера.
+// Хэш в адресе (#projects, #about, #contacts...) — сохраняем и сразу
+// убираем из URL: иначе браузер сам, независимо от нашего JS (и в
+// произвольный момент — иногда уже после того, как мы прокрутили куда
+// нужно), долистает до элемента с этим id своим штатным выравниванием
+// (по верху), а для "Проекты" это ещё и не то центрирование, что при
+// клике на "Проекты" в шапке/бургере (см. ниже). Сам скролл к разделу
+// делаем позже, в блоке лоадера.
 var SKIP_INTRO_HASH = '';
 if (SKIP_INTRO && location.hash) {
   SKIP_INTRO_HASH = location.hash;
@@ -272,17 +273,19 @@ function revealHeroInstant() {
     loader.style.display = 'none';
     unlockScroll();
     revealHeroInstant();
-    // "Все проекты" в кейсе ведёт на #projects — клик по "Проекты" в
-    // шапке/бургере (см. ниже, блок с .header-nav__item) центрирует секцию
-    // (block: 'center'), а не выравнивает по верху. Раз результат должен
-    // выглядеть одинаково независимо от способа перехода, повторяем то же
-    // самое здесь. Дёргаем сразу и ещё раз после полной загрузки (картинки
-    // выше secции могут досчитать высоту и сдвинуть её положение).
-    if (SKIP_INTRO_HASH === '#projects') {
-      var projectsSection = document.getElementById('projects');
-      if (projectsSection) {
-        var centerProjects = function () {
-          projectsSection.scrollIntoView({ behavior: 'auto', block: 'center' });
+    // Ссылки из кейса (плавающее меню, "Все проекты") ведут на конкретный
+    // раздел главной ("../index.html#about" и т.п.) — раз хэш уже вырезан
+    // из адреса выше (см. SKIP_INTRO_HASH), скроллим к нему сюда сами.
+    // "Проекты" при клике в шапке/бургере (см. ниже, .header-nav__item)
+    // центрируется (block: 'center'), а не выравнивается по верху —
+    // результат должен быть одинаковым независимо от способа перехода,
+    // поэтому та же логика (по id, не только для "projects") и здесь.
+    if (SKIP_INTRO_HASH) {
+      var targetId = SKIP_INTRO_HASH.slice(1);
+      var targetSection = document.getElementById(targetId);
+      if (targetSection) {
+        var scrollToTarget = function () {
+          targetSection.scrollIntoView({ behavior: 'auto', block: targetId === 'projects' ? 'center' : 'start' });
         };
         // Сразу вызывать бесполезно: страница только что распарсилась,
         // layout ещё не устоялся (особенно на длинной scale()-странице), и
@@ -290,9 +293,9 @@ function revealHeroInstant() {
         // подряд гарантируют, что раскладка уже посчитана, плюс подстраховка
         // после полной загрузки (картинки/шрифты могли сдвинуть высоту).
         requestAnimationFrame(function () {
-          requestAnimationFrame(centerProjects);
+          requestAnimationFrame(scrollToTarget);
         });
-        window.addEventListener('load', centerProjects);
+        window.addEventListener('load', scrollToTarget);
       }
     }
     return;
@@ -636,11 +639,13 @@ function revealHeroInstant() {
 // центра экрана она находится) — небольшая разница в скорости с самой
 // страницей создаёт ощущение глубины.
 (function () {
-  var cards = document.querySelectorAll('.t-tilt-card');
+  // Сдвигается .t-tilt-shift, а не .t-tilt-card — см. комментарий у
+  // .t-tilt-card в styles.css: сдвигать по Y сам скруглённый (overflow:
+  // hidden) элемент нельзя, вместе с картинкой уезжала бы и его рамка.
+  var cards = document.querySelectorAll('.t-tilt-shift');
   if (!cards.length) return;
 
   var PARALLAX_FACTOR = 0.2;
-  var MAX_OFFSET = 30;
   var ticking = false;
 
   function getPageScale() {
@@ -654,12 +659,17 @@ function revealHeroInstant() {
     cards.forEach(function (card) {
       var rect = card.getBoundingClientRect();
       var cardCenter = rect.top + rect.height / 2;
-      // Сдвиг только вниз: пока карточка не дошла до центра экрана, картинка
-      // "прибита" к верхней границе (0), вверх за неё не уходит. Вниз —
-      // как раньше, до MAX_OFFSET.
+      // Запас по краям даёт scale(1.12) на .t-tilt-card (см. styles.css) —
+      // по 6% высоты с каждой стороны. Раньше сдвиг ограничивался общим
+      // потолком в 30px для всех карточек сразу, но у карточек пониже
+      // (card__media--2/--3, 462/386px) 6% от их высоты — это меньше 30px,
+      // и на максимуме сдвиг вылезал за пределы запаса, оголяя пустоту у
+      // края картинки. Теперь потолок свой у каждой карточки, от её
+      // реальной высоты, а не общий на всех.
+      var maxOffset = rect.height * 0.06;
       var offset = (viewportCenter - cardCenter) * PARALLAX_FACTOR;
       if (offset < 0) offset = 0;
-      if (offset > MAX_OFFSET) offset = MAX_OFFSET;
+      if (offset > maxOffset) offset = maxOffset;
       card.style.setProperty('--parallax-y', (offset / scale).toFixed(1) + 'px');
     });
 

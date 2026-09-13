@@ -264,7 +264,6 @@ window.scrollTo(0, 0);
   if (!shot) return;
 
   var PARALLAX_FACTOR = 0.2;
-  var MAX_OFFSET = 30;
   var ticking = false;
 
   function getScale() {
@@ -276,9 +275,16 @@ window.scrollTo(0, 0);
     var rect = shot.getBoundingClientRect();
     var viewportCenter = window.innerHeight / 2;
     var shotCenter = rect.top + rect.height / 2;
+    // Запас по краям даёт scale(1.12) в css (см. .case-shot--parallax) —
+    // 6% высоты с каждой стороны. Потолок сдвига считаем от реальной
+    // высоты картинки, а не фиксированным числом: у более низкой картинки
+    // 6% может оказаться меньше фиксированного потолка, и сдвиг вылезал бы
+    // за пределы запаса, оголяя пустоту у края (см. тот же фикс в script.js
+    // для карточек проектов на главной).
+    var maxOffset = rect.height * 0.06;
     var offset = (viewportCenter - shotCenter) * PARALLAX_FACTOR;
     if (offset < 0) offset = 0;
-    if (offset > MAX_OFFSET) offset = MAX_OFFSET;
+    if (offset > maxOffset) offset = maxOffset;
     shot.style.setProperty('--case-parallax-y', (offset / scale).toFixed(1) + 'px');
     ticking = false;
   }
