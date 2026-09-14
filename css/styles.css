@@ -1609,7 +1609,7 @@ img {
     position: relative;
     left: auto;
     top: auto;
-    margin: 54px 16px 0;
+    margin: 16px 16px 0;
     width: auto;
     height: 311px;
   }
@@ -1828,7 +1828,7 @@ img {
     left: auto;
     top: auto;
     width: 100%;
-    padding: 10px 16px 34px;
+    padding: 16px;
   }
   .footer::before {
     border-top: 1px solid var(--color-border-divider);
@@ -1892,6 +1892,13 @@ img {
   .footer-links__item--telegram { left: 20px; top: 0; }
   .footer-links__item--linkedin { left: 0; top: 42px; }
   .footer-links__item--cv { left: 0; top: 84px; }
+  /* Сам глиф стрелки в фигме 10x10 (повёрнутый на 135°, отсюда рамка
+     14.14x14.14 в макете) — десктопные 14.75x15.06 на мобильной версии
+     выглядели заметно крупнее подписи "CV". */
+  .footer-links__cv-arrow {
+    width: 10px;
+    height: 10px;
+  }
 
   .footer-bottom {
     flex-wrap: wrap;
