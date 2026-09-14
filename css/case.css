@@ -467,8 +467,15 @@ body {
   .case--mobile .case-compare__after .case-shot__img {
     left: -6.18%;
     top: -0.698%;
-    width: 100.013%;
+    width: 99.903%;
     height: 100.837%;
+  }
+  /* При этой подгонке картинка "после" кончается на ~6% раньше правого
+     края блока — если увести ручку вправо, в щель проглядывал старый сайт
+     тёмной полосой. У нового сайта справа чисто белое поле, так что белая
+     подложка просто продолжает его. */
+  .case--mobile .case-compare__after {
+    background: #fff;
   }
   .case--mobile .case-compare__handle {
     width: 36px;
