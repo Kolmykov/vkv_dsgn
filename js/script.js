@@ -6,6 +6,14 @@ if ('scrollRestoration' in history) {
 }
 window.scrollTo(0, 0);
 
+// Мобильная версия — тот же порог, что у media-запроса в styles.css. На ней
+// hover-эффекты выключены: на тачскрине наведения нет (тап оставляет
+// "залипший" hover), поэтому обработчики ниже проверяют это в момент
+// события, а не один раз при загрузке — так корректно и после ресайза.
+function isMobileLayout() {
+  return document.documentElement.clientWidth <= 768;
+}
+
 // Флаг ставится в case.js по клику на "Все проекты" в кейсе: раз человек
 // только что видел главную (пришёл с неё), незачем повторно проигрывать
 // лоадер и печатающийся заголовок — сразу показываем готовую страницу
@@ -507,9 +515,13 @@ function revealHeroInstant() {
     e.preventDefault();
     copyText(link.textContent.trim()).then(function () {
       bubble.textContent = 'Скопировано!';
+      // На мобильной версии подсказка по наведению выключена — показываем
+      // её классом, иначе копирование проходило бы без обратной связи.
+      bubble.parentElement.classList.add('is-copied');
       clearTimeout(revertTimer);
       revertTimer = setTimeout(function () {
         bubble.textContent = defaultText;
+        bubble.parentElement.classList.remove('is-copied');
       }, 1600);
     });
   });
@@ -523,6 +535,10 @@ function revealHeroInstant() {
 
   document.querySelectorAll('.magnet-btn').forEach(function (el) {
     el.addEventListener('mousemove', function (e) {
+      if (isMobileLayout()) {
+        el.style.transform = 'translate(0, 0)';
+        return;
+      }
       var rect = el.getBoundingClientRect();
       var offsetX = e.clientX - (rect.left + rect.width / 2);
       var offsetY = e.clientY - (rect.top + rect.height / 2);
@@ -554,6 +570,7 @@ function revealHeroInstant() {
   }
 
   el.addEventListener('mouseenter', function () {
+    if (isMobileLayout()) return;
     swapTo(hoverText);
   });
   el.addEventListener('mouseleave', function () {
@@ -570,6 +587,7 @@ function revealHeroInstant() {
   if (!el) return;
 
   el.addEventListener('mouseenter', function () {
+    if (isMobileLayout()) return;
     el.classList.add('is-hovering');
   });
   el.addEventListener('mouseleave', function () {
@@ -594,7 +612,7 @@ function revealHeroInstant() {
   // выше), иначе тут делили бы на clientWidth/1920, а это крошечное число
   // на телефонном экране — перетаскивание/параллакс улетали бы в разгон.
   function getPageScale() {
-    if (document.documentElement.clientWidth <= 768) return 1;
+    if (isMobileLayout()) return 1;
     return Math.min(document.documentElement.clientWidth / 1920, 1) || 1;
   }
 
@@ -656,19 +674,18 @@ function revealHeroInstant() {
 
     // На тачскрине нет наведения — палец не "зависает" над картинкой, он
     // либо тапает, либо тащит (в т.ч. чтобы прокрутить ленту проектов
-    // вбок). pointerType==='touch' у этих же pointerenter/move/leave
-    // событий отсекает эффект именно для касания, оставляя мышь как есть
-    // (touch-action на .t-tilt в css отдельно отпускает нативный скролл
-    // тачем — без него свайп по картинке не долистывал ленту до конца).
+    // вбок), поэтому касание эффект не запускает. На мобильной версии
+    // наклон выключен и для мыши — как и остальные hover-эффекты (см.
+    // isMobileLayout выше).
     wrap.addEventListener('pointerenter', function (e) {
-      if (e.pointerType === 'touch') return;
+      if (e.pointerType === 'touch' || isMobileLayout()) return;
       wrap.classList.add('is-hover');
       card.classList.add('is-tilting');
       updateTilt(e);
     });
 
     wrap.addEventListener('pointermove', function (e) {
-      if (e.pointerType === 'touch') return;
+      if (e.pointerType === 'touch' || isMobileLayout()) return;
       updateTilt(e);
     });
 
@@ -700,7 +717,7 @@ function revealHeroInstant() {
   // выше), иначе тут делили бы на clientWidth/1920, а это крошечное число
   // на телефонном экране — перетаскивание/параллакс улетали бы в разгон.
   function getPageScale() {
-    if (document.documentElement.clientWidth <= 768) return 1;
+    if (isMobileLayout()) return 1;
     return Math.min(document.documentElement.clientWidth / 1920, 1) || 1;
   }
 

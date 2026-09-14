@@ -7,6 +7,15 @@ if ('scrollRestoration' in history) {
 }
 window.scrollTo(0, 0);
 
+// Мобильная раскладка кейса — только там, где для неё есть макет
+// (body.case--mobile), и на ширине мобильного media-запроса в case.css.
+// Проверяется в момент вызова, а не один раз, — чтобы работало и после
+// поворота экрана или ресайза окна.
+function isMobileCase() {
+  return document.body.classList.contains('case--mobile') &&
+    document.documentElement.clientWidth <= 768;
+}
+
 // Фрейм 1920xH сжимается под ширину окна (но не увеличивается сверх 100%).
 // .case-page сам сжимается через CSS zoom, а не transform: scale() — на
 // таких длинных страницах (кейсы — десятки тысяч px из-за реальных
@@ -43,9 +52,24 @@ window.scrollTo(0, 0);
   }
 
   function fit() {
-    var scale = Math.min(document.documentElement.clientWidth / FRAME_WIDTH, 1);
     var dpr = window.devicePixelRatio || 1;
     var root = document.documentElement;
+
+    // На мобильной версии страница идёт обычным потоком (см. case.css) —
+    // зум и расчётную высоту не ставим, а если они остались с десктопной
+    // ширины (окно сузили), сбрасываем. Меню там в масштабе 1, поэтому и
+    // толщину полосок бургера считаем от 1; шаг 6.13px — пропорция
+    // десктопного 9.25px на 25px полоске, пересчитанная на мобильные 16.58px.
+    if (isMobileCase()) {
+      page.style.zoom = '';
+      page.style.height = '';
+      root.style.setProperty('--case-scale', 1);
+      root.style.setProperty('--fm-hairline', snapToDevicePx(1, 1, dpr) + 'px');
+      root.style.setProperty('--fm-bar-gap', snapToDevicePx(6.13, 1, dpr) + 'px');
+      return;
+    }
+
+    var scale = Math.min(document.documentElement.clientWidth / FRAME_WIDTH, 1);
     root.style.setProperty('--case-scale', scale);
     root.style.setProperty('--fm-hairline', snapToDevicePx(1, scale, dpr) + 'px');
     root.style.setProperty('--fm-bar-gap', snapToDevicePx(9.25 * scale, scale, dpr) + 'px');
@@ -266,7 +290,10 @@ window.scrollTo(0, 0);
   var PARALLAX_FACTOR = 0.2;
   var ticking = false;
 
+  // На мобильной версии страница не сжимается — масштаб 1, иначе сдвиг
+  // делился бы на clientWidth/1920 и улетал в разы дальше запаса картинки.
   function getScale() {
+    if (isMobileCase()) return 1;
     return Math.min(document.documentElement.clientWidth / 1920, 1) || 1;
   }
 
@@ -413,13 +440,49 @@ window.scrollTo(0, 0);
   function isNearBottom() {
     return document.documentElement.scrollHeight - (window.scrollY + window.innerHeight) < BOTTOM_GAP;
   }
-  function updateBottomVisibility() {
+
+  // На мобильной версии вместо этого — по направлению скролла: листаем
+  // вниз (читаем) — меню убирается и не закрывает текст, листаем вверх —
+  // возвращается. SCROLL_DELTA отсекает дрожание пальца, у самого верха
+  // меню видно всегда. За пределами документа (резиновый отскок iOS у
+  // верхнего/нижнего края) scrollY уходит за границы и скачет — такие
+  // значения пропускаем, иначе меню мигало бы на отскоке.
+  var SCROLL_DELTA = 8;
+  var lastScrollY = window.scrollY;
+
+  function updateMobileVisibility() {
+    var y = window.scrollY;
+    var maxY = document.documentElement.scrollHeight - window.innerHeight;
+    if (y < 0 || y > maxY) return;
+
+    if (y < SCROLL_DELTA) {
+      floatMenu.classList.remove('is-scroll-hidden');
+      lastScrollY = y;
+      return;
+    }
+
+    var delta = y - lastScrollY;
+    if (Math.abs(delta) < SCROLL_DELTA) return;
+
+    var hide = delta > 0;
+    floatMenu.classList.toggle('is-scroll-hidden', hide);
+    if (hide) closeDropdown();
+    lastScrollY = y;
+  }
+
+  function updateVisibility() {
+    if (isMobileCase()) {
+      floatMenu.classList.remove('is-near-bottom');
+      updateMobileVisibility();
+      return;
+    }
+    floatMenu.classList.remove('is-scroll-hidden');
     var nearBottom = isNearBottom();
     floatMenu.classList.toggle('is-near-bottom', nearBottom);
     if (nearBottom) closeDropdown();
   }
-  updateBottomVisibility();
-  window.addEventListener('scroll', updateBottomVisibility, { passive: true });
-  window.addEventListener('resize', updateBottomVisibility);
+  updateVisibility();
+  window.addEventListener('scroll', updateVisibility, { passive: true });
+  window.addEventListener('resize', updateVisibility);
 })();
 

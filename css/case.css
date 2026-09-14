@@ -382,3 +382,125 @@ body {
   pointer-events: none;
   translate: -50% 12px;
 }
+
+/* ==========================================================================
+   Мобильная версия кейса (≤768px) — фрейм "case-skoutai" 430px из Figma.
+   Включается только на страницах с body.case--mobile: у кейсов, для
+   которых мобильного макета пока нет (Бауцентр), обрезанные скриншоты
+   спозиционированы в пикселях под колонку 1080px и при сужении поедут,
+   поэтому там остаётся десктопный фрейм, сжатый под ширину.
+   Как и на главной, вместо сжатого фрейма — обычный поток: .case-page не
+   зумится (см. fit() в case.js), текст переносится по ширине экрана.
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* В макете нет ни левого меню, ни стрелки к следующему проекту —
+     навигация целиком в бургере. */
+  .case--mobile .case-nav,
+  .case--mobile .case-project-nav {
+    display: none;
+  }
+
+  .case--mobile .case-page {
+    width: 100%;
+  }
+
+  .case--mobile .case-content {
+    position: static;
+    width: auto;
+    padding: 16px;
+    gap: 30px;
+  }
+
+  .case--mobile .case-section {
+    gap: 10px;
+  }
+
+  .case--mobile .case-hero__title,
+  .case--mobile .case-section__title {
+    font-size: 18px;
+  }
+
+  .case--mobile .case-body-group,
+  .case--mobile .case-screen,
+  .case--mobile .case-list {
+    gap: 6px;
+  }
+
+  .case--mobile .case-body,
+  .case--mobile .case-label,
+  .case--mobile .case-list li {
+    font-size: 12px;
+  }
+
+  .case--mobile .case-list li {
+    padding-left: 18px;
+  }
+  .case--mobile .case-list li::before {
+    left: 6px;
+  }
+  .case--mobile .case-list--numbered li::before {
+    left: 0;
+  }
+
+  /* Высота скриншотов в разметке задана инлайном под колонку 1080px — на
+     мобильной версии её отменяем, и размер задаёт aspect-ratio из той же
+     разметки (те же пропорции, что в макете). */
+  .case--mobile .case-shot {
+    height: auto !important;
+    border-radius: 3px;
+  }
+
+  /* ---------- плавающее меню ---------- */
+  /* Размеры — из фрейма "menu" в макете. Масштаб 1: на мобильной версии
+     страница не сжимается, поэтому и меню не нужно подгонять под
+     --case-scale (см. fit() в case.js). */
+  .case--mobile .float-menu {
+    bottom: 16px;
+    scale: 1;
+  }
+  .case--mobile .float-menu__toggle {
+    width: 41px;
+    height: 41px;
+    border-radius: 6px;
+  }
+  .case--mobile .float-menu__icon,
+  .case--mobile .float-menu__bar {
+    width: 16.58px;
+  }
+  .case--mobile .float-menu__telegram {
+    height: 41px;
+    padding: 0 18px;
+    border-radius: 6px;
+    font-size: 16px;
+  }
+  .case--mobile .float-menu__telegram-inner {
+    gap: 6px;
+  }
+  .case--mobile .float-menu__arrow {
+    width: 10px;
+    height: 10px;
+  }
+  /* Выпадающего меню в макете нет — уменьшено в той же пропорции, что и
+     кнопки, чтобы не выглядело крупнее них. */
+  .case--mobile .float-menu__dropdown {
+    min-width: 160px;
+    padding: 8px;
+    border-radius: 6px;
+  }
+  .case--mobile .float-menu__dropdown-item {
+    padding: 10px 12px;
+  }
+  .case--mobile .float-menu__dropdown-item-inner {
+    font-size: 16px;
+  }
+
+  /* Прячется при скролле вниз и возвращается при скролле вверх (см.
+     case.js). Тот же вид скрытия, что у .is-near-bottom — оно на мобильной
+     версии не используется: при скролле вверх у самого низа меню тоже
+     должно появляться. */
+  .case--mobile .float-menu.is-scroll-hidden {
+    opacity: 0;
+    pointer-events: none;
+    translate: -50% 12px;
+  }
+}
