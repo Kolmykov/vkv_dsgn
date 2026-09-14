@@ -309,9 +309,21 @@ function isMobileCase() {
     // за пределы запаса, оголяя пустоту у края (см. тот же фикс в script.js
     // для карточек проектов на главной).
     var maxOffset = rect.height * 0.06;
-    var offset = (viewportCenter - shotCenter) * PARALLAX_FACTOR;
-    if (offset < 0) offset = 0;
-    if (offset > maxOffset) offset = maxOffset;
+    var offset;
+    if (isMobileCase()) {
+      // На телефоне картинка с самого начала выше центра экрана — формула
+      // ниже сразу упиралась бы в потолок и картинка стояла на месте.
+      // Поэтому здесь сдвиг идёт от прокрутки, с той же скоростью: от -6%
+      // до +6% — весь запас scale(1.12) в обе стороны.
+      offset = -maxOffset + window.scrollY * PARALLAX_FACTOR;
+      // Нижняя граница — на случай отрицательного scrollY при отскоке iOS.
+      if (offset < -maxOffset) offset = -maxOffset;
+      if (offset > maxOffset) offset = maxOffset;
+    } else {
+      offset = (viewportCenter - shotCenter) * PARALLAX_FACTOR;
+      if (offset < 0) offset = 0;
+      if (offset > maxOffset) offset = maxOffset;
+    }
     shot.style.setProperty('--case-parallax-y', (offset / scale).toFixed(1) + 'px');
     ticking = false;
   }

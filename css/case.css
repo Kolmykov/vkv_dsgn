@@ -384,11 +384,10 @@ body {
 }
 
 /* ==========================================================================
-   Мобильная версия кейса (≤768px) — фрейм "case-skoutai" 430px из Figma.
-   Включается только на страницах с body.case--mobile: у кейсов, для
-   которых мобильного макета пока нет (Бауцентр), обрезанные скриншоты
-   спозиционированы в пикселях под колонку 1080px и при сужении поедут,
-   поэтому там остаётся десктопный фрейм, сжатый под ширину.
+   Мобильная версия кейса (≤768px) — фреймы "case-skoutai" и "case-baucentr"
+   430px из Figma. Включается только на страницах с body.case--mobile: кейсу
+   без мобильного макета здесь нечего взять, и для него остаётся десктопный
+   фрейм, сжатый под ширину.
    Как и на главной, вместо сжатого фрейма — обычный поток: .case-page не
    зумится (см. fit() в case.js), текст переносится по ширине экрана.
    ========================================================================== */
@@ -450,6 +449,36 @@ body {
     border-radius: 3px;
   }
 
+  /* Слайдер "до/после" (Бауцентр): кадрирование подогнано в мобильном
+     макете отдельно для каждой картинки, чтобы старый и новый сайт
+     совпадали по контенту. Проценты — положение этих же PNG в блоке,
+     пересчитанное из фрейма "compare" в Figma (блок 398x823). */
+  .case--mobile .case-compare .case-shot__img {
+    position: absolute;
+    max-width: none;
+    object-fit: fill;
+  }
+  .case--mobile .case-compare > .case-shot__img {
+    left: -3.769%;
+    top: -0.035%;
+    width: 103.769%;
+    height: 103.165%;
+  }
+  .case--mobile .case-compare__after .case-shot__img {
+    left: -6.18%;
+    top: -0.698%;
+    width: 100.013%;
+    height: 100.837%;
+  }
+  .case--mobile .case-compare__handle {
+    width: 36px;
+    height: 36px;
+  }
+  .case--mobile .case-compare__handle svg {
+    width: 16px;
+    height: 16px;
+  }
+
   /* ---------- плавающее меню ---------- */
   /* Размеры — из фрейма "menu" в макете. Масштаб 1: на мобильной версии
      страница не сжимается, поэтому и меню не нужно подгонять под
@@ -459,8 +488,8 @@ body {
     scale: 1;
   }
   .case--mobile .float-menu__toggle {
-    width: 41px;
-    height: 41px;
+    width: 45px;
+    height: 45px;
     border-radius: 6px;
   }
   .case--mobile .float-menu__icon,
@@ -468,8 +497,8 @@ body {
     width: 16.58px;
   }
   .case--mobile .float-menu__telegram {
-    height: 41px;
-    padding: 0 18px;
+    height: 45px;
+    padding: 0 20px;
     border-radius: 6px;
     font-size: 16px;
   }
@@ -480,18 +509,23 @@ body {
     width: 10px;
     height: 10px;
   }
-  /* Выпадающего меню в макете нет — уменьшено в той же пропорции, что и
-     кнопки, чтобы не выглядело крупнее них. */
+  /* Выпадашки в макете нет — собрана по кнопке Telegram рядом: тот же
+     размер шрифта, те же поля (12px сверху, 20px по бокам), ширина по
+     содержимому. Отступ до кнопок 6px — как между бургером и Telegram
+     (bottom: calc(100% + 6px) в базовом правиле). Между пунктами тоже
+     12px, чтобы весь вертикальный ритм был одинаковым. */
   .case--mobile .float-menu__dropdown {
-    min-width: 160px;
-    padding: 8px;
+    min-width: 0;
+    padding: 12px 20px;
+    gap: 12px;
     border-radius: 6px;
   }
   .case--mobile .float-menu__dropdown-item {
-    padding: 10px 12px;
+    padding: 0;
   }
   .case--mobile .float-menu__dropdown-item-inner {
     font-size: 16px;
+    white-space: nowrap;
   }
 
   /* Прячется при скролле вниз и возвращается при скролле вверх (см.

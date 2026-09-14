@@ -689,12 +689,120 @@ function revealHeroInstant() {
       updateTilt(e);
     });
 
-    wrap.addEventListener('pointerleave', function () {
+    wrap.addEventListener('pointerleave', function (e) {
+      // Тап по карточке тоже заканчивается pointerleave — на телефоне он
+      // не должен сбрасывать наклон от гироскопа (см. ниже).
+      if (e.pointerType === 'touch') return;
       wrap.classList.remove('is-hover');
       card.classList.remove('is-tilting');
       wrap.style.setProperty('--tilt-rx', '0deg');
       wrap.style.setProperty('--tilt-ry', '0deg');
     });
+  });
+})();
+
+// Тот же 3D-наклон с бликом на мобильной версии — от наклона самого
+// телефона (гироскоп) вместо курсора. Разрешение сознательно не
+// запрашиваем (requestPermission не вызываем — он и показывает системный
+// диалог): просто слушаем событие. Где датчик отдаёт данные без вопросов
+// (Android), эффект работает; на iPhone без разрешения события не
+// приходят — там карточки просто остаются ровными.
+//
+// Нейтральное положение — то, как телефон держат сейчас, а не строго
+// горизонтально: база медленно подтягивается к текущему углу, поэтому
+// карточки откликаются на движение и через пару секунд спокойно
+// возвращаются в ровное положение, если телефон держат неподвижно.
+(function () {
+  if (!('DeviceOrientationEvent' in window)) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var wraps = document.querySelectorAll('.t-tilt');
+  if (!wraps.length) return;
+
+  var MAX_TILT = 10;      // как у наклона мышью
+  var INPUT_RANGE = 20;   // наклон телефона в градусах, дающий полный наклон карточки
+  var BASE_FOLLOW = 0.015; // скорость, с которой база догоняет текущее положение
+
+  var baseX = null;
+  var baseY = null;
+  var lastX = 0;
+  var lastY = 0;
+  var active = false;
+  var ticking = false;
+
+  function screenAngle() {
+    if (screen.orientation && typeof screen.orientation.angle === 'number') {
+      return screen.orientation.angle;
+    }
+    return typeof window.orientation === 'number' ? window.orientation : 0;
+  }
+
+  // gamma — наклон влево-вправо, beta — к себе / от себя; в альбомной
+  // ориентации оси экрана поворачиваются относительно датчика.
+  function readAxes(e) {
+    var angle = ((screenAngle() % 360) + 360) % 360;
+    if (angle === 90) return { x: e.beta, y: -e.gamma };
+    if (angle === 270) return { x: -e.beta, y: e.gamma };
+    if (angle === 180) return { x: -e.gamma, y: -e.beta };
+    return { x: e.gamma, y: e.beta };
+  }
+
+  function clamp(v) {
+    return Math.max(-1, Math.min(1, v));
+  }
+
+  function apply() {
+    ticking = false;
+    var nx = clamp((lastX - baseX) / INPUT_RANGE);
+    var ny = clamp((lastY - baseY) / INPUT_RANGE);
+    wraps.forEach(function (wrap) {
+      wrap.style.setProperty('--tilt-ry', (nx * MAX_TILT).toFixed(2) + 'deg');
+      wrap.style.setProperty('--tilt-rx', (-ny * MAX_TILT).toFixed(2) + 'deg');
+      wrap.style.setProperty('--tilt-gx', (50 + nx * 50).toFixed(1) + '%');
+      wrap.style.setProperty('--tilt-gy', (50 + ny * 50).toFixed(1) + '%');
+      if (!active) {
+        wrap.classList.add('is-hover');
+        var card = wrap.querySelector('.t-tilt-card');
+        if (card) card.classList.add('is-tilting');
+      }
+    });
+    active = true;
+  }
+
+  function reset() {
+    active = false;
+    baseX = baseY = null;
+    wraps.forEach(function (wrap) {
+      wrap.classList.remove('is-hover');
+      var card = wrap.querySelector('.t-tilt-card');
+      if (card) card.classList.remove('is-tilting');
+      wrap.style.setProperty('--tilt-rx', '0deg');
+      wrap.style.setProperty('--tilt-ry', '0deg');
+    });
+  }
+
+  window.addEventListener('deviceorientation', function (e) {
+    if (!isMobileLayout()) {
+      if (active) reset();
+      return;
+    }
+    if (e.beta === null || e.gamma === null) return;
+
+    var axes = readAxes(e);
+    lastX = axes.x;
+    lastY = axes.y;
+    if (baseX === null) {
+      baseX = lastX;
+      baseY = lastY;
+    } else {
+      baseX += (lastX - baseX) * BASE_FOLLOW;
+      baseY += (lastY - baseY) * BASE_FOLLOW;
+    }
+
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(apply);
+    }
   });
 })();
 
