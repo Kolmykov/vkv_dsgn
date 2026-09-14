@@ -345,9 +345,24 @@ function revealHeroInstant() {
 // (но не увеличивает сверх 100%), высота скроллится обычным образом.
 // Сама вёрстка (.page) остаётся в исходном пиксельном размере
 // Figma-фрейма — этот блок ничего в ней не меняет, только визуальный zoom.
+//
+// На мобильной версии (≤768px, см. MOBILE_BREAKPOINT) .page вместо этого
+// идёт обычным потоком (см. media-запрос в styles.css) — тексту нужно
+// реально переноситься по словам на разных ширинах, а с застывшим
+// пиксельным фреймом высота блока "Обо мне" была бы не той, что подскажет
+// собственный рендер шрифтов браузера. Поэтому здесь для мобильной версии
+// .page/.stage просто не трогаем (сбрасываем инлайн-стили, если они
+// остались с десктопной ширины), а --page-scale считаем от СВОЕГО
+// эталона 430px — он нужен только плавающему меню (бургер+Telegram),
+// которое, как и на десктопе, живёт вне .page и масштабируется им.
 (function () {
   var FRAME_WIDTH = 1920;
   var FRAME_HEIGHT = 2738;
+  var MOBILE_BREAKPOINT = 768;
+  var MOBILE_FRAME_WIDTH = 430;
+  // Аналог "9.25" у десктопного бургера (25px полоска → 9.25px шаг), но
+  // для мобильной кнопки 16.58px — та же пропорция (9.25 / 25 * 16.58).
+  var MOBILE_BAR_GAP = 6.13;
 
   var page = document.querySelector('.page');
   var stage = document.querySelector('.stage');
@@ -366,9 +381,26 @@ function revealHeroInstant() {
   }
 
   function fit() {
-    var scale = Math.min(document.documentElement.clientWidth / FRAME_WIDTH, 1);
     var dpr = window.devicePixelRatio || 1;
     var root = document.documentElement;
+    var isMobile = document.documentElement.clientWidth <= MOBILE_BREAKPOINT;
+
+    if (isMobile) {
+      // Сбрасываем инлайн-стили, которые мог выставить этот же fit() при
+      // предыдущем вызове на десктопной ширине (например, окно сузили) —
+      // иначе .page остался бы зажат в них поверх media-запроса.
+      page.style.transform = '';
+      stage.style.width = '';
+      stage.style.height = '';
+
+      var mobileScale = Math.min(document.documentElement.clientWidth / MOBILE_FRAME_WIDTH, 1);
+      root.style.setProperty('--page-scale', mobileScale);
+      root.style.setProperty('--fm-hairline', snapToDevicePx(1, mobileScale, dpr) + 'px');
+      root.style.setProperty('--fm-bar-gap', snapToDevicePx(MOBILE_BAR_GAP * mobileScale, mobileScale, dpr) + 'px');
+      return;
+    }
+
+    var scale = Math.min(document.documentElement.clientWidth / FRAME_WIDTH, 1);
 
     page.style.transform = 'scale(' + scale + ')';
     stage.style.width = FRAME_WIDTH * scale + 'px';
@@ -557,7 +589,12 @@ function revealHeroInstant() {
   var startX = 0;
   var startScrollLeft = 0;
 
+  // На мобильной версии (≤768px) .page не сжимается через transform:
+  // scale() — там всегда действующий масштаб 1 (см. комментарий у fit()
+  // выше), иначе тут делили бы на clientWidth/1920, а это крошечное число
+  // на телефонном экране — перетаскивание/параллакс улетали бы в разгон.
   function getPageScale() {
+    if (document.documentElement.clientWidth <= 768) return 1;
     return Math.min(document.documentElement.clientWidth / 1920, 1) || 1;
   }
 
@@ -617,13 +654,23 @@ function revealHeroInstant() {
       wrap.style.setProperty('--tilt-gy', (py * 100).toFixed(1) + '%');
     }
 
+    // На тачскрине нет наведения — палец не "зависает" над картинкой, он
+    // либо тапает, либо тащит (в т.ч. чтобы прокрутить ленту проектов
+    // вбок). pointerType==='touch' у этих же pointerenter/move/leave
+    // событий отсекает эффект именно для касания, оставляя мышь как есть
+    // (touch-action на .t-tilt в css отдельно отпускает нативный скролл
+    // тачем — без него свайп по картинке не долистывал ленту до конца).
     wrap.addEventListener('pointerenter', function (e) {
+      if (e.pointerType === 'touch') return;
       wrap.classList.add('is-hover');
       card.classList.add('is-tilting');
       updateTilt(e);
     });
 
-    wrap.addEventListener('pointermove', updateTilt);
+    wrap.addEventListener('pointermove', function (e) {
+      if (e.pointerType === 'touch') return;
+      updateTilt(e);
+    });
 
     wrap.addEventListener('pointerleave', function () {
       wrap.classList.remove('is-hover');
@@ -648,7 +695,12 @@ function revealHeroInstant() {
   var PARALLAX_FACTOR = 0.2;
   var ticking = false;
 
+  // На мобильной версии (≤768px) .page не сжимается через transform:
+  // scale() — там всегда действующий масштаб 1 (см. комментарий у fit()
+  // выше), иначе тут делили бы на clientWidth/1920, а это крошечное число
+  // на телефонном экране — перетаскивание/параллакс улетали бы в разгон.
   function getPageScale() {
+    if (document.documentElement.clientWidth <= 768) return 1;
     return Math.min(document.documentElement.clientWidth / 1920, 1) || 1;
   }
 
@@ -759,4 +811,22 @@ function revealHeroInstant() {
   document.addEventListener('click', function (e) {
     if (!floatMenu.contains(e.target)) closeDropdown();
   });
+
+  // Меню прибито к низу ЭКРАНА (position:fixed), а не к низу СТРАНИЦЫ —
+  // у самого конца футера оно наезжает на его содержимое. Прячем его, как
+  // только до конца страницы остаётся меньше отступа снизу + высоты
+  // самого меню, и возвращаем при скролле обратно вверх — один в один с
+  // isNearBottom() в case.js.
+  var BOTTOM_GAP = 160;
+  function isNearBottom() {
+    return document.documentElement.scrollHeight - (window.scrollY + window.innerHeight) < BOTTOM_GAP;
+  }
+  function updateBottomVisibility() {
+    var nearBottom = isNearBottom();
+    floatMenu.classList.toggle('is-near-bottom', nearBottom);
+    if (nearBottom) closeDropdown();
+  }
+  updateBottomVisibility();
+  window.addEventListener('scroll', updateBottomVisibility, { passive: true });
+  window.addEventListener('resize', updateBottomVisibility);
 })();

@@ -1347,6 +1347,16 @@ img {
   pointer-events: auto;
   translate: -50% 0;
 }
+/* Меню прибито к низу ЭКРАНА (position:fixed), а не к низу СТРАНИЦЫ — у
+   самого конца контента оно наезжает на футер. Прячется, когда до конца
+   страницы остаётся меньше отступа (см. isNearBottom() в script.js) — тот
+   же приём, что и на страницах кейсов (см. .float-menu.is-near-bottom
+   в case.css). */
+.float-menu.is-near-bottom {
+  opacity: 0;
+  pointer-events: none;
+  translate: -50% 12px;
+}
 
 .float-menu__toggle-wrap {
   position: relative;
@@ -1529,4 +1539,382 @@ img {
 .float-menu__dropdown.is-open .float-menu__dropdown-item {
   animation: float-menu-item-in 1.2s cubic-bezier(0.33, 1, 0.68, 1) forwards;
   animation-delay: var(--item-delay, 0s);
+}
+
+/* ==========================================================================
+   Мобильная версия (≤768px) — фрейм "mobile" из Figma (430px reference).
+   В отличие от десктопа/кейсов, здесь НЕ используется приём
+   "зафиксированный пиксельный фрейм + zoom/scale под ширину экрана":
+   тексту нужно реально переноситься по словам на разных мобильных ширинах
+   (375/390/430...), а с застывшим фреймом высота блока "Обо мне" была бы
+   не той, что подскажет собственный рендер шрифтов браузера (та же причина,
+   по которой высота .case-page на страницах кейсов считается от факта, а не
+   берётся из Figma константой — см. комментарий в case.js).
+   Поэтому секции идут обычным потоком (margin вместо top), и только внутри
+   каждой секции — там, где в Figma элементы физически перекрываются
+   (буквы V/K/V, аватар, оффер в шапке) — сохраняется position:absolute
+   относительно контейнера с фиксированной высотой.
+   Все классы — те же самые, что на десктопе (никакой отдельной вёрстки):
+   JS-логика (тайпрайтер, reveal-анимации, tilt/параллакс, decoder-эффект,
+   копирование email и т.д.) продолжает работать один в один, меняются
+   только размеры/расположение через этот медиа-запрос. Плавающее меню
+   (бургер + Telegram) по-прежнему живёт вне .page и масштабируется через
+   --page-scale, но уже от мобильного эталона 430px (см. fit() в script.js).
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* .stage — родитель .page, а body центрирует его как flex-элемент
+     (align-items:center, не stretch) — с width:auto его ширина считалась
+     бы по контенту, а .page внутри (width:100%) от этого auto упирается в
+     циклическую зависимость и "распухает" шире реального вьюпорта. Тот же
+     предел ширины, что у .page, разрывает цикл. */
+  .stage {
+    width: 100%;
+    max-width: 430px;
+    height: auto;
+  }
+
+  /* overflow-x:hidden здесь, а не clip на .page — clip на .page заодно
+     обрезал всё, что намеренно выходит за пределы блока: и bleed
+     свечений (hero-glow/footer-glow), и сдвиг буквы V/K/V при
+     magnet-эффекте (см. .magnet-btn в script.js) — на скриншоте это
+     выглядело как "обрезанная" буква при наведении. Ограничивать
+     горизонтальный скролл достаточно на body: сам он не оборачивает
+     декоративные элементы вплотную, как .page, поэтому им есть куда
+     свободно вытекать, а document.documentElement.scrollWidth всё равно
+     не растягивается. */
+  body {
+    overflow-x: hidden;
+  }
+
+  .page {
+    position: static;
+    width: 100%;
+    max-width: 430px;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* ---------- header ---------- */
+
+  .header {
+    /* margin вместо padding: дети позиционируются absolute (right:0/left:0
+       и т.д.) — их containing block это padding-box родителя, то есть
+       padding для НИХ как будто не существует (см. спецификацию), они
+       легли бы вплотную к истинному краю блока, игнорируя отступ. margin
+       настоящий отступ снаружи блока, поэтому именно он. */
+    position: relative;
+    left: auto;
+    top: auto;
+    margin: 54px 16px 0;
+    width: auto;
+    height: 311px;
+  }
+
+  .hero-glow {
+    left: 50%;
+    top: -65.17px;
+    width: 431.47px;
+    height: 47.75px;
+    transform: translateX(-50%);
+  }
+  /* Ширину (789.34px) и охват по бокам оставляем как в Figma-экспорте —
+     именно так свечение должно выходить далеко за края блока, — а высоту
+     пересчитываем под родное соотношение сторон картинки (2589x1400,
+     789.34/1.849 ≈ 426.9px вместо растянутых экспортом 586px), чтобы
+     блики не деформировались непропорциональным масштабом. */
+  .hero-glow__inner {
+    inset: -105.57px -133.93px -273.53px -223.94px;
+  }
+
+  .hero-offer {
+    /* auto, не фиксированный 229px из Figma: там это не жёсткая ширина, а
+       просто авто-размер блока под однострочный текст в ИХ рендере шрифта
+       — с fixed width и без nowrap текст (плюс курсор рядом) переносился
+       по словам и съезжал на вторую строку. */
+    width: auto;
+  }
+  .hero-offer__title {
+    font-weight: 500;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .brand-identity {
+    bottom: 62px;
+    width: auto;
+    gap: 1px;
+  }
+  .brand-identity__name {
+    width: auto;
+    font-size: 12px;
+  }
+  .brand-identity__role {
+    width: auto;
+    font-size: 10px;
+  }
+
+  .brand-avatar {
+    width: 63px;
+    height: 63px;
+    border-radius: 1px;
+  }
+  .brand-avatar::before,
+  .brand-avatar::after {
+    border-radius: 1px;
+  }
+
+  .brand-letter-pos--v-right {
+    top: 93px;
+    right: 54px;
+  }
+  .brand-letter-pos--k {
+    bottom: 125px;
+    left: calc(50% - 30px);
+  }
+  .brand-letter {
+    font-size: 90px;
+  }
+
+  /* Навигация в шапке на мобильной версии не показывается (её роль берёт
+     на себя бургер), но остаётся в потоке и на месте .header (не сдвинута
+     за край экрана) — иначе IntersectionObserver в script.js, который
+     показывает плавающее меню, когда .header-nav уходит из вьюпорта,
+     перестанет срабатывать корректно (см. комментарий в script.js). */
+  .header-nav {
+    position: absolute;
+    inset: 0;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  /* ---------- projects ---------- */
+
+  .projects {
+    position: static;
+    margin-top: 60px;
+    width: 100%;
+    padding: 0 16px;
+    box-sizing: border-box;
+    gap: 20px;
+  }
+
+  .projects__head {
+    width: 100%;
+    height: auto;
+  }
+  .projects__title {
+    font-weight: 400;
+    font-size: 24px;
+  }
+
+  .projects__list {
+    gap: 14px;
+    width: 100vw;
+    margin-left: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* touch-action:none у .t-tilt (базовое правило) сделан под мышиный
+     3D-наклон — на тачскрине он же блокирует нативный скролл именно там,
+     где палец чаще всего свайпает (по самой картинке), и ленту было не
+     дотащить до последней карточки. pan-x возвращает браузеру нативный
+     горизонтальный скролл в этой зоне (JS-эффект наклона на touch и так
+     выключен, см. pointerType==='touch' в script.js). */
+  .t-tilt {
+    touch-action: pan-x;
+  }
+
+  .card {
+    width: 300px;
+    gap: 4px;
+  }
+  .card__visual {
+    gap: 6px;
+  }
+  .card__media {
+    width: 300px;
+  }
+  .card__media--1 { height: 224px; }
+  .card__media--2 { height: 203px; }
+  .card__media--3 { height: 182px; }
+  .card__media--4 { height: 182px; }
+
+  .card__tags {
+    gap: 4px;
+  }
+  .card__tag-sep {
+    width: 1.5px;
+    height: 1.5px;
+  }
+  .card__tag,
+  .card__year {
+    font-size: 12px;
+  }
+
+  .card__content {
+    gap: 6px;
+  }
+  .card__title {
+    font-weight: 400;
+    font-size: 18px;
+  }
+  .card__desc {
+    font-size: 12px;
+  }
+
+  /* ---------- about ---------- */
+
+  .about {
+    position: static;
+    margin-top: 60px;
+    width: 100%;
+    padding: 0 16px;
+    box-sizing: border-box;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .about__title {
+    font-weight: 400;
+    font-size: 24px;
+  }
+  .about__body {
+    gap: 20px;
+  }
+  .about__lead {
+    font-size: 12px;
+  }
+  .about__facts {
+    gap: 20px;
+  }
+  .facts-row {
+    gap: 60px;
+  }
+  .fact-item {
+    gap: 4px;
+    padding-top: 4px;
+  }
+  .fact-item::before {
+    /* На мобильной версии страница не сжимается через transform: scale() —
+       компенсация толщины линии (см. базовое правило) здесь не нужна и
+       только утолщала бы её на узких экранах, где --page-scale < 1. */
+    border-top: 1px solid var(--color-border-divider);
+  }
+  .fact-item--fixed {
+    width: 105px;
+  }
+  .fact-item__label,
+  .fact-item__value {
+    font-size: 12px;
+  }
+
+  /* ---------- footer ---------- */
+
+  .footer {
+    /* relative, не static: .footer-glow и .footer::before — position:
+       absolute дети, их containing block должен остаться сам .footer
+       (как на десктопе), иначе уедут к следующему спозиционированному
+       предку вверх по дереву (см. тот же приём у .header выше). */
+    position: relative;
+    margin-top: 60px;
+    left: auto;
+    top: auto;
+    width: 100%;
+    padding: 10px 16px 34px;
+  }
+  .footer::before {
+    border-top: 1px solid var(--color-border-divider);
+  }
+
+  .footer-glow {
+    left: 8.39px;
+    top: 103.69px;
+    width: 402.87px;
+    height: 45.74px;
+  }
+  /* См. комментарий у .hero-glow__inner выше — та же причина и тот же
+     приём: ширину/охват по бокам (850.21px) оставляем как в экспорте,
+     высоту пересчитываем под родное соотношение сторон SVG (2769x1465,
+     ratio 1.89), чтобы блики не деформировались. */
+  .footer-glow__inner {
+    inset: -195.57px -236.32px -208.44px -211.02px;
+  }
+
+  .footer-main {
+    gap: 50px;
+  }
+
+  .footer-top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: 'brand email' 'links links';
+    align-items: start;
+    gap: 10px;
+  }
+  .footer-brand {
+    /* align-items/justify-content не трогаем — остаются center из базового
+       правила (как и в фигме: "dsgn" по центру под "VKV", а не прижат
+       влево). */
+    grid-area: brand;
+    justify-self: start;
+    gap: 6px;
+  }
+  .footer-brand__mark {
+    width: 63.66px;
+    height: 26.48px;
+  }
+  .footer-brand__suffix {
+    font-size: 12.4px;
+  }
+  .tooltip-zone {
+    grid-area: email;
+    justify-self: end;
+  }
+  .footer-email {
+    font-size: 12px;
+  }
+
+  .footer-links {
+    grid-area: links;
+    justify-self: center;
+    width: 91px;
+    height: 102px;
+    font-size: 16px;
+  }
+  .footer-links__item--telegram { left: 20px; top: 0; }
+  .footer-links__item--linkedin { left: 0; top: 42px; }
+  .footer-links__item--cv { left: 0; top: 84px; }
+
+  .footer-bottom {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  /* Базовые 4px — намеренная оптическая компенсация под 22px десктопный
+     шрифт (см. .copyright__name-wrap в базовых правилах). На мобильных
+     10px тот же отступ уже перекомпенсирует — уменьшаем пропорционально. */
+  .copyright__name-wrap {
+    padding-bottom: 2px;
+  }
+  .copyright__sep {
+    width: 2px;
+    height: 2px;
+  }
+  .copyright__name,
+  .copyright__year,
+  .footer-location {
+    font-size: 10px;
+  }
+
+  /* ---------- float-menu ---------- */
+  /* На мобильной версии главной страницы бургер и кнопку Telegram не
+     показываем вовсе (по просьбе) — на этой странице все разделы и так
+     на одном скролле, а CV/Telegram уже есть в футере. */
+  .float-menu,
+  .float-menu-backdrop {
+    display: none;
+  }
 }
