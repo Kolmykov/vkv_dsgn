@@ -94,7 +94,7 @@ img {
   top: 0;
   left: 0;
   width: 1920px;
-  height: 2738px;
+  height: 2833px;
   background: var(--color-bg);
   transform-origin: top left;
   /* clip (не hidden!): обрезает фон-глоу по границе фрейма так же
@@ -900,19 +900,25 @@ img {
   -webkit-user-select: text;
 }
 
+/* Две колонки по 605px (1210 - 30 зазор, пополам): слева три факта
+   столбиком, справа "Инструменты" со списком и уровнем владения. */
 .about__facts {
   width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+}
+
+.facts-col {
+  flex: 1 0 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 30px;
 }
-
-.facts-row {
-  width: 100%;
-  display: flex;
-  align-items: flex-start;
-  gap: 139px;
+.facts-col .fact-item {
+  width: 480px;
 }
 
 .fact-item {
@@ -920,8 +926,129 @@ img {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
+  gap: 20px;
   padding-top: 15px;
+}
+
+.fact-item--tools {
+  flex: 1 0 0;
+  min-width: 0;
+}
+
+.tools {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.tool {
+  display: flex;
+  align-items: center;
+  min-height: 22px;
+  justify-content: space-between;
+  gap: 20px;
+}
+.tool__text {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  line-height: normal;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.tool__name {
+  width: 75px;
+  flex-shrink: 0;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  color: var(--color-text-primary);
+}
+.tool__desc {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* Уровень владения — 5 кружков по 12px через 10px. Пустой кружок в
+   макете — ячейка 12px с серой точкой 6px внутри.
+   Появление построчно (классы ставит revealTools() в script.js):
+   .is-visible — проявляется текст строки и следом по очереди 5 серых
+   кружков; .is-filled — кружки уровня по очереди закрашиваются чёрным
+   (сжались → вспыхнули чёрным с перелётом 1.18 → встали в 1). Один раз,
+   без цикла. */
+.tool__text {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+.tool.is-visible .tool__text {
+  opacity: 1;
+  transform: none;
+}
+.tool__level {
+  --dot-empty: radial-gradient(circle, #e5e5e5 0 3px, transparent 3.5px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.tool__level i {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--dot-empty);
+  opacity: 0;
+  transform: scale(0.55);
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+}
+.tool.is-visible .tool__level i {
+  opacity: 1;
+  transform: scale(1);
+}
+.tool.is-visible .tool__level i:nth-child(1) { transition-delay: 150ms; }
+.tool.is-visible .tool__level i:nth-child(2) { transition-delay: 200ms; }
+.tool.is-visible .tool__level i:nth-child(3) { transition-delay: 250ms; }
+.tool.is-visible .tool__level i:nth-child(4) { transition-delay: 300ms; }
+.tool.is-visible .tool__level i:nth-child(5) { transition-delay: 350ms; }
+/* После заливки чёрные кружки медленно "дышат" (dot-pulse, только
+   opacity) — волной, с тем же сдвигом между кружками, что и у заливки.
+   Пульс стартует уже после заливки (0.42s + пауза 0.6s), начинается и
+   заканчивается на opacity 1 — без скачка. */
+.tool.is-filled .tool__level i.is-on {
+  background: var(--color-text-primary);
+  animation:
+    token-fill 0.42s linear both,
+    dot-pulse 4.8s ease-in-out 1.02s infinite;
+}
+.tool.is-filled .tool__level i:nth-child(2) { animation-delay: 80ms, 1.3s; }
+.tool.is-filled .tool__level i:nth-child(3) { animation-delay: 160ms, 1.58s; }
+.tool.is-filled .tool__level i:nth-child(4) { animation-delay: 240ms, 1.86s; }
+.tool.is-filled .tool__level i:nth-child(5) { animation-delay: 320ms, 2.14s; }
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .6; }
+}
+@keyframes token-fill {
+  0%   { background: var(--dot-empty); opacity: 1; transform: scale(1); }
+  30%  { background: var(--dot-empty); opacity: .1; transform: scale(.55); }
+  31%  { background: var(--color-text-primary); opacity: .1; transform: scale(.55); }
+  75%  { background: var(--color-text-primary); opacity: 1; transform: scale(1.18); }
+  100% { background: var(--color-text-primary); opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tool__text,
+  .tool__level i {
+    transition: none;
+  }
+  .tool.is-filled .tool__level i.is-on {
+    animation: none;
+  }
 }
 .fact-item::before {
   content: '';
@@ -937,16 +1064,6 @@ img {
 }
 .fact-item.is-visible::before {
   transform: scaleX(1);
-}
-
-.fact-item--fixed {
-  width: 461px;
-  flex-shrink: 0;
-}
-
-.fact-item--flex {
-  flex: 1 0 0;
-  min-width: 0;
 }
 
 .fact-item__label {
@@ -989,7 +1106,7 @@ img {
 .footer {
   position: absolute;
   left: 0;
-  top: 2404px;
+  top: 2495px;
   width: 1920px;
   padding: 40px;
   /* Как .about — оформление/навигация, не контент для копирования. */
@@ -1828,24 +1945,55 @@ img {
   .about__lead {
     font-size: 12px;
   }
+  /* Все факты, включая "Инструменты", — одним столбиком (фрейм "mobile"). */
   .about__facts {
+    flex-direction: column;
     gap: 20px;
   }
-  .facts-row {
-    gap: 60px;
+  .facts-col {
+    width: 100%;
+    gap: 20px;
+  }
+  .facts-col .fact-item {
+    width: 100%;
   }
   .fact-item {
-    gap: 4px;
-    padding-top: 4px;
+    gap: 8px;
+    padding-top: 6px;
+  }
+  .fact-item--tools {
+    width: 100%;
+  }
+  .tools {
+    gap: 16px;
+  }
+  .tool {
+    min-height: 15px;
+    gap: 20px;
+  }
+  .tool__text {
+    gap: 24px;
+  }
+  .tool__name {
+    width: 50px;
+    font-size: 12px;
+  }
+  .tool__desc {
+    font-size: 12px;
+    /* На узких телефонах (320px) длинное описание переносится, а не
+       выталкивает кружки за край экрана. */
+    white-space: normal;
+  }
+  /* Кружки 10px через 10px, пустой — серая точка 6px, как на десктопе. */
+  .tool__level i {
+    width: 10px;
+    height: 10px;
   }
   .fact-item::before {
     /* На мобильной версии страница не сжимается через transform: scale() —
        компенсация толщины линии (см. базовое правило) здесь не нужна и
        только утолщала бы её на узких экранах, где --page-scale < 1. */
     border-top: 1px solid var(--color-border-divider);
-  }
-  .fact-item--fixed {
-    width: 105px;
   }
   .fact-item__label,
   .fact-item__value {

@@ -139,6 +139,9 @@ var startScrollReveal = function () {};
     document.querySelectorAll('.js-scroll-reveal').forEach(function (el) {
       el.classList.add('is-visible');
     });
+    document.querySelectorAll('.tool').forEach(function (el) {
+      el.classList.add('is-visible', 'is-filled');
+    });
     return;
   }
 
@@ -153,11 +156,33 @@ var startScrollReveal = function () {};
   // чертятся по очереди с шагом FACT_LINE_DURATION, у последней текст
   // начинает проявляться сразу как она дочерчена (transition-delay в css
   // совпадает с FACT_LINE_DURATION) и занимает ещё FACT_TEXT_FADE_DURATION.
+  // "Инструменты" (последний факт) после своей линии проявляются построчно:
+  // строка текста → 5 серых кружков по очереди → закрашиваются чёрным те,
+  // что входят в уровень (тайминги кружков — в .tool__level в css).
+  var toolRows = Array.prototype.slice.call(document.querySelectorAll('.tool'));
+  var TOOL_ROW_STEP = 1000;
+  var TOOL_FILL_DELAY = 600;
+  var TOOL_FILL_DURATION = 4 * 80 + 420;
+  var TOOLS_TOTAL_DURATION = toolRows.length
+    ? (toolRows.length - 1) * TOOL_ROW_STEP + TOOL_FILL_DELAY + TOOL_FILL_DURATION
+    : FACT_TEXT_FADE_DURATION;
+
+  function revealTools() {
+    toolRows.forEach(function (row, i) {
+      setTimeout(function () {
+        row.classList.add('is-visible');
+        setTimeout(function () {
+          row.classList.add('is-filled');
+        }, TOOL_FILL_DELAY);
+      }, i * TOOL_ROW_STEP);
+    });
+  }
+
   var ABOUT_FACTS_TOTAL_DURATION =
     FACT_ITEMS_START_DELAY +
     (FACT_ITEMS_COUNT - 1) * FACT_LINE_DURATION +
     FACT_LINE_DURATION +
-    FACT_TEXT_FADE_DURATION;
+    TOOLS_TOTAL_DURATION;
 
   // Футер (линия и весь контент) не должен проявляться раньше, чем
   // полностью прогрузится блок "Обо мне" — иначе при быстром скролле футер
@@ -206,7 +231,10 @@ var startScrollReveal = function () {};
         // Заголовок и текст проявляются сразу, а линии над фактами ждут
         // своей очереди и чертятся строго одна за другой, без наложения.
         setTimeout(function () {
-          staggerReveal(factItems, FACT_LINE_DURATION);
+          staggerReveal(factItems, FACT_LINE_DURATION, function (el) {
+            if (!el.classList.contains('fact-item--tools')) return;
+            setTimeout(revealTools, FACT_LINE_DURATION);
+          });
         }, FACT_ITEMS_START_DELAY);
         // Как только полностью проявится последний факт ("Методы") — можно
         // показывать футер (см. afterAboutFacts ниже).
@@ -384,7 +412,7 @@ var startScrollReveal = function () {};
 // которое, как и на десктопе, живёт вне .page и масштабируется им.
 (function () {
   var FRAME_WIDTH = 1920;
-  var FRAME_HEIGHT = 2738;
+  var FRAME_HEIGHT = 2833;
   var MOBILE_BREAKPOINT = 768;
   var MOBILE_FRAME_WIDTH = 430;
   // Аналог "9.25" у десктопного бургера (25px полоска → 9.25px шаг), но
