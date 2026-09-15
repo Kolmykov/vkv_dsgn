@@ -1972,7 +1972,7 @@ img {
     gap: 20px;
   }
   .tool__text {
-    gap: 24px;
+    gap: 22px;
   }
   .tool__name {
     width: 50px;
@@ -1984,7 +1984,10 @@ img {
        выталкивает кружки за край экрана. */
     white-space: normal;
   }
-  /* Кружки 10px через 10px, пустой — серая точка 6px, как на десктопе. */
+  /* Кружки 10px через 8px, пустой — серая точка 6px, как на десктопе. */
+  .tool__level {
+    gap: 8px;
+  }
   .tool__level i {
     width: 10px;
     height: 10px;
