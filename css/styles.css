@@ -207,7 +207,7 @@ img {
 
 .brand-identity {
   position: absolute;
-  bottom: 118px;
+  bottom: 111px;
   right: 0;
   width: 261px;
   display: flex;
@@ -1546,6 +1546,15 @@ img {
   display: flex;
   align-items: center;
   gap: 6px;
+  /* Шрифт как у ссылок футера (.footer-links__item): CV — не раздел
+     страницы, а внешний файл, поэтому и выглядит иначе, чем пункты-якоря. */
+  font-family: var(--font-sans);
+}
+/* Дополнительный зазор над CV, отделяющий его от пунктов навигации.
+   На десктопе между остальными пунктами 28px (12px padding + 4px gap +
+   12px padding), над CV — 40px. В мобильных кейсах там 12px, над CV — 24px. */
+.float-menu__dropdown-item:has(.float-menu__dropdown-item-inner--cv) {
+  margin-top: 12px;
 }
 .float-menu__dropdown.is-open .float-menu__dropdown-item {
   animation: float-menu-item-in 1.2s cubic-bezier(0.33, 1, 0.68, 1) forwards;
