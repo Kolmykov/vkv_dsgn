@@ -60,6 +60,9 @@ function startTypewriter() {
       setTimeout(function () {
         staggerReveal(['.brand-avatar', '.brand-identity'], 500, function (el, selector) {
           if (selector !== '.brand-identity') return;
+          // Имя с ролью — последний шаг каскада hero: только за ним идут
+          // блоки, видимые на первом экране (проекты на мобильной версии).
+          setTimeout(startScrollReveal, 400);
           // Автоцикл decoder-эффекта запускаем только когда блок с ролью
           // реально закончил проявляться (его transition — 1.1s, см.
           // .js-reveal--slow), а не одновременно с началом fade-in.
@@ -337,10 +340,9 @@ var startScrollReveal = function () {};
       loader.removeEventListener('transitionend', handler);
       unlockScroll();
       revealHero();
-      // Последний элемент hero (.hero-offer) проявляется через 700ms
-      // (8 шагов по 100ms в revealHero) — следующим шагом каскада идут
-      // блоки, видимые на первом экране (проекты на мобильной версии).
-      setTimeout(startScrollReveal, 800);
+      // На десктопе проекты ниже первого экрана — ждать конца каскада hero
+      // не нужно (иначе при быстром скролле они бы не появлялись).
+      if (!isMobileLayout()) startScrollReveal();
     }, { once: true });
   }
 
