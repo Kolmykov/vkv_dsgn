@@ -412,7 +412,7 @@ var startScrollReveal = function () {};
 // которое, как и на десктопе, живёт вне .page и масштабируется им.
 (function () {
   var FRAME_WIDTH = 1920;
-  var FRAME_HEIGHT = 2833;
+  var FRAME_HEIGHT = 2838;
   var MOBILE_BREAKPOINT = 768;
   var MOBILE_FRAME_WIDTH = 430;
   // Аналог "9.25" у десктопного бургера (25px полоска → 9.25px шаг), но

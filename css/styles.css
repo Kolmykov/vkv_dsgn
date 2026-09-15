@@ -94,7 +94,7 @@ img {
   top: 0;
   left: 0;
   width: 1920px;
-  height: 2833px;
+  height: 2838px;
   background: var(--color-bg);
   transform-origin: top left;
   /* clip (не hidden!): обрезает фон-глоу по границе фрейма так же
@@ -915,7 +915,7 @@ img {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 30px;
+  gap: 40px;
 }
 .facts-col .fact-item {
   width: 480px;
@@ -926,7 +926,7 @@ img {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 20px;
+  gap: 15px;
   padding-top: 15px;
 }
 
@@ -1106,7 +1106,7 @@ img {
 .footer {
   position: absolute;
   left: 0;
-  top: 2495px;
+  top: 2500px;
   width: 1920px;
   padding: 40px;
   /* Как .about — оформление/навигация, не контент для копирования. */
@@ -1958,14 +1958,14 @@ img {
     width: 100%;
   }
   .fact-item {
-    gap: 8px;
-    padding-top: 6px;
+    gap: 10px;
+    padding-top: 10px;
   }
   .fact-item--tools {
     width: 100%;
   }
   .tools {
-    gap: 16px;
+    gap: 12px;
   }
   /* Строка всегда в одну линию. Макет — 430px; на телефонах уже зазоры
      плавно сжимаются (22→9px у текста, 8→5px у кружков), а самое длинное
