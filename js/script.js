@@ -130,6 +130,7 @@ function revealHeroInstant() {
 // hero доигрывает свою анимацию после лоадера, всё остальное ждёт своей
 // очереди и появляется только когда блок реально доезжает до вьюпорта —
 // тем же способом, что на kei-inc.jp (IntersectionObserver, один раз).
+var startScrollReveal = function () {};
 (function () {
   if (!('IntersectionObserver' in window)) {
     document.querySelectorAll('.js-scroll-reveal').forEach(function (el) {
@@ -240,10 +241,18 @@ function revealHeroInstant() {
     });
   }, { rootMargin: '0px 0px -10% 0px', threshold: 0.15 });
 
-  groups.forEach(function (g) {
-    var el = document.querySelector(g.trigger);
-    if (el) observer.observe(el);
-  });
+  // Наблюдение включается не сразу, а после каскада hero (см. лоадер
+  // ниже): на мобильной версии проекты видны уже на первом экране, и
+  // observer срабатывал ещё под лоадером — карточки проявлялись раньше
+  // hero, а их каскад никто не видел. На десктопе блоки ниже первого
+  // экрана, так что для него ничего не меняется.
+  startScrollReveal = function () {
+    startScrollReveal = function () {};
+    groups.forEach(function (g) {
+      var el = document.querySelector(g.trigger);
+      if (el) observer.observe(el);
+    });
+  };
 })();
 
 // Loader: держит экран загрузки минимум 3 секунды, даже если страница
@@ -252,7 +261,10 @@ function revealHeroInstant() {
 // полностью откроет сайт, запускает каскадное появление hero.
 (function () {
   var loader = document.getElementById('loader');
-  if (!loader) return;
+  if (!loader) {
+    startScrollReveal();
+    return;
+  }
 
   // Пока лоадер на экране — жёстко блокируем скролл. Одного
   // overflow:hidden на html оказалось недостаточно: колесо/тачпад
@@ -281,6 +293,7 @@ function revealHeroInstant() {
     loader.style.display = 'none';
     unlockScroll();
     revealHeroInstant();
+    startScrollReveal();
     // Ссылки из кейса (плавающее меню, "Все проекты") ведут на конкретный
     // раздел главной ("../index.html#about" и т.п.) — раз хэш уже вырезан
     // из адреса выше (см. SKIP_INTRO_HASH), скроллим к нему сюда сами.
@@ -324,6 +337,10 @@ function revealHeroInstant() {
       loader.removeEventListener('transitionend', handler);
       unlockScroll();
       revealHero();
+      // Последний элемент hero (.hero-offer) проявляется через 700ms
+      // (8 шагов по 100ms в revealHero) — следующим шагом каскада идут
+      // блоки, видимые на первом экране (проекты на мобильной версии).
+      setTimeout(startScrollReveal, 800);
     }, { once: true });
   }
 
