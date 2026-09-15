@@ -1967,26 +1967,31 @@ img {
   .tools {
     gap: 16px;
   }
+  /* Строка всегда в одну линию. Макет — 430px; на телефонах уже зазоры
+     плавно сжимаются (22→9px у текста, 8→5px у кружков), а самое длинное
+     описание всё равно помещается вплоть до 360px. Уже этого описание
+     обрезается многоточием, а не переносится и не выталкивает кружки. */
   .tool {
     min-height: 15px;
-    gap: 20px;
+    gap: 8px;
   }
   .tool__text {
-    gap: 22px;
+    min-width: 0;
+    gap: clamp(9px, calc((100vw - 375px) * 0.2 + 12px), 22px);
   }
   .tool__name {
     width: 50px;
     font-size: 12px;
   }
   .tool__desc {
+    min-width: 0;
     font-size: 12px;
-    /* На узких телефонах (320px) длинное описание переносится, а не
-       выталкивает кружки за край экрана. */
-    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   /* Кружки 10px через 8px, пустой — серая точка 6px, как на десктопе. */
   .tool__level {
-    gap: 8px;
+    gap: clamp(5px, calc((100vw - 375px) * 0.055 + 6px), 8px);
   }
   .tool__level i {
     width: 10px;
