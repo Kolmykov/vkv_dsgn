@@ -410,6 +410,13 @@ function isMobileCase() {
     dropdown.classList.toggle('is-open', isOpen);
     if (backdrop) backdrop.classList.toggle('is-open', isOpen);
     dropdown.setAttribute('aria-hidden', String(!isOpen));
+    // То же, что на главной (см. script.js): закрытая выпадашка не должна
+    // содержать фокусируемых элементов внутри aria-hidden.
+    if (isOpen) {
+      dropdown.removeAttribute('inert');
+    } else {
+      dropdown.setAttribute('inert', '');
+    }
     toggle.setAttribute('aria-expanded', String(isOpen));
     setScrollLock(isOpen);
   }
@@ -417,6 +424,14 @@ function isMobileCase() {
   function closeDropdown() {
     setOpen(false);
   }
+
+  dropdown.setAttribute('inert', '');
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || !dropdown.classList.contains('is-open')) return;
+    closeDropdown();
+    toggle.focus();
+  });
 
   toggle.addEventListener('click', function (e) {
     e.stopPropagation();

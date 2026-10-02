@@ -1686,11 +1686,24 @@ img {
   scale: 0;
   transform-origin: bottom center;
   pointer-events: none;
-  transition: scale 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Закрытая выпадашка полностью убрана из интерфейса, а не просто сжата:
+     scale: 0 прячет её только визуально, ссылки внутри оставались
+     доступны по Tab и читалкам экрана. visibility переключается без
+     перехода, но с задержкой на время сжатия (0.3s) — чтобы анимация
+     закрытия доигрывала. Дублирующий страховкой служит атрибут inert,
+     его ставит script.js/case.js. */
+  visibility: hidden;
+  transition:
+    scale 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s linear 0.3s;
 }
 .float-menu__dropdown.is-open {
   scale: 1;
   pointer-events: auto;
+  visibility: visible;
+  transition:
+    scale 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s linear 0s;
 }
 /* Пункты появляются по очереди — тот же keyframe fadeInSlide и та же
    кривая --slide-ease: cubic-bezier(.33,1,.68,1), что и .js-modal__item на

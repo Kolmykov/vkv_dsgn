@@ -1002,6 +1002,15 @@ var startScrollReveal = function () {};
     dropdown.classList.toggle('is-open', isOpen);
     if (backdrop) backdrop.classList.toggle('is-open', isOpen);
     dropdown.setAttribute('aria-hidden', String(!isOpen));
+    // inert убирает содержимое закрытой выпадашки и из порядка табуляции,
+    // и из дерева доступности: иначе ссылки внутри aria-hidden остаются
+    // фокусируемыми — на это ругается проверка доступности (aria-hidden
+    // element must not contain focusable elements).
+    if (isOpen) {
+      dropdown.removeAttribute('inert');
+    } else {
+      dropdown.setAttribute('inert', '');
+    }
     toggle.setAttribute('aria-expanded', String(isOpen));
     setScrollLock(isOpen);
   }
@@ -1009,6 +1018,17 @@ var startScrollReveal = function () {};
   function closeDropdown() {
     setOpen(false);
   }
+
+  // Стартовое состояние: выпадашка закрыта, фокусу внутри делать нечего.
+  dropdown.setAttribute('inert', '');
+
+  // Escape закрывает меню и возвращает фокус на кнопку — иначе фокус
+  // остался бы на пункте, который только что исчез с экрана.
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || !dropdown.classList.contains('is-open')) return;
+    closeDropdown();
+    toggle.focus();
+  });
 
   if ('IntersectionObserver' in window) {
     var observer = new IntersectionObserver(
