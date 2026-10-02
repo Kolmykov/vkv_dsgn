@@ -39,7 +39,19 @@
      перебьют это правило; media-условие не даёт ему сработать на
      мобильной вёрстке, где .page не масштабируется. */
   (function () {
-    var w = document.documentElement.clientWidth;
+    // Ширину считаем за вычетом вертикальной полосы прокрутки. В <head>
+    // документ ещё пустой, вертикального скролла нет, и clientWidth равен
+    // полной ширине окна — страница получалась шире вьюпорта ровно на
+    // полосу, и появлялся горизонтальный скролл. Страница всегда длиннее
+    // экрана, поэтому полоса будет точно (в системах с наезжающей
+    // полосой её ширина 0, и вычитать нечего).
+    var probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;top:-9999px;width:100px;height:100px;overflow:scroll';
+    document.documentElement.appendChild(probe);
+    var scrollbar = probe.offsetWidth - probe.clientWidth;
+    probe.remove();
+
+    var w = window.innerWidth - scrollbar;
     if (w <= 768) return;
     var s = Math.min(w / 1920, 1);
     var st = document.createElement('style');

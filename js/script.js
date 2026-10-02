@@ -493,10 +493,29 @@ var startScrollReveal = function () {};
     return devicePx / dpr / scale;
   }
 
+  // Ширина окна без вертикальной полосы прокрутки. clientWidth для этого
+  // не годится: пока высота документа ещё не посчитана, полосы нет и он
+  // возвращает полную ширину окна — страница масштабировалась под неё и
+  // оказывалась шире вьюпорта ровно на полосу (горизонтальный скролл).
+  // Страница всегда длиннее экрана, значит полоса будет; там, где она
+  // наезжает поверх контента, её ширина 0.
+  var scrollbarWidth = (function () {
+    var probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;top:-9999px;width:100px;height:100px;overflow:scroll';
+    document.documentElement.appendChild(probe);
+    var w = probe.offsetWidth - probe.clientWidth;
+    probe.remove();
+    return w;
+  })();
+
+  function viewportWidth() {
+    return window.innerWidth - scrollbarWidth;
+  }
+
   function fit() {
     var dpr = window.devicePixelRatio || 1;
     var root = document.documentElement;
-    var isMobile = document.documentElement.clientWidth <= MOBILE_BREAKPOINT;
+    var isMobile = viewportWidth() <= MOBILE_BREAKPOINT;
 
     if (isMobile) {
       // Сбрасываем инлайн-стили, которые мог выставить этот же fit() при
@@ -506,14 +525,14 @@ var startScrollReveal = function () {};
       stage.style.width = '';
       stage.style.height = '';
 
-      var mobileScale = Math.min(document.documentElement.clientWidth / MOBILE_FRAME_WIDTH, 1);
+      var mobileScale = Math.min(viewportWidth() / MOBILE_FRAME_WIDTH, 1);
       root.style.setProperty('--page-scale', mobileScale);
       root.style.setProperty('--fm-hairline', snapToDevicePx(1, mobileScale, dpr) + 'px');
       root.style.setProperty('--fm-bar-gap', snapToDevicePx(MOBILE_BAR_GAP * mobileScale, mobileScale, dpr) + 'px');
       return;
     }
 
-    var scale = Math.min(document.documentElement.clientWidth / FRAME_WIDTH, 1);
+    var scale = Math.min(viewportWidth() / FRAME_WIDTH, 1);
 
     page.style.transform = 'scale(' + scale + ')';
     stage.style.width = FRAME_WIDTH * scale + 'px';
