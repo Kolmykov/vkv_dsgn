@@ -427,7 +427,7 @@ function isMobileCase() {
   // проигрывать заново вступительную анимацию лоадера, раз человек её уже
   // видел. CV сюда не попадает — он открывает PDF в новой вкладке, а не
   // ведёт на главную, флаг ему ни к чему.
-  dropdown.querySelectorAll('a[href^="../index.html"]').forEach(function (link) {
+  dropdown.querySelectorAll('a[href^="/#"]').forEach(function (link) {
     link.addEventListener('click', function () {
       try {
         sessionStorage.setItem('skipIntro', '1');

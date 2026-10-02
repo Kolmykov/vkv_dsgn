@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Владимир Колмыков — Product | UX/UI Designer</title>
 <meta name="description" content="Опыт разработки интерфейсов для веб-продуктов и сайтов в B2B и B2C сегментах.">
+<link rel="canonical" href="https://vkv-dsgn.ru/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://vkv-dsgn.ru/">
 <meta property="og:site_name" content="Владимир Колмыков">
@@ -19,13 +20,71 @@
 <meta name="twitter:title" content="Владимир Колмыков — Product | UX/UI Designer">
 <meta name="twitter:description" content="Опыт разработки интерфейсов для веб-продуктов и сайтов в B2B и B2C сегментах.">
 <meta name="twitter:image" content="https://vkv-dsgn.ru/assets/images/avatar_color.png">
-<link rel="icon" type="image/png" href="assets/images/avatar_color.png">
-<link rel="apple-touch-icon" href="assets/images/avatar_color.png">
+<link rel="icon" type="image/png" href="assets/images/opt/avatar_color-320.png">
+<link rel="apple-touch-icon" href="assets/images/opt/avatar_color-320.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:SOFT,WONK,opsz,wght@0,1,9..144,300..900&family=Inter:wght@400;500&family=Piazzolla:wght@400;500&display=swap" rel="stylesheet">
+<!-- Шрифты грузятся не блокируя первую отрисовку: media="print" снимает
+     со стилей блокировку рендера, onload возвращает их в дело. Пока они
+     едут, экран всё равно закрыт лоадером, поэтому подмены шрифта не видно. -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:SOFT,WONK,opsz,wght@0,1,9..144,300..900&family=Inter:wght@400;500&family=Piazzolla:wght@400;500&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Fraunces:SOFT,WONK,opsz,wght@0,1,9..144,300..900&family=Inter:wght@400;500&family=Piazzolla:wght@400;500&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:SOFT,WONK,opsz,wght@0,1,9..144,300..900&family=Inter:wght@400;500&family=Piazzolla:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="css/styles.css">
-</head>
+<script>
+  /* Тот же масштаб, что считает fit() в script.js, но выставленный до
+     первой отрисовки: иначе страница сначала рисуется в полный размер
+     фрейма 1920px и только потом ужимается — это большой сдвиг макета
+     (CLS). Инлайновые стили, которые позже поставит fit(), всё равно
+     перебьют это правило; media-условие не даёт ему сработать на
+     мобильной вёрстке, где .page не масштабируется. */
+  (function () {
+    var w = document.documentElement.clientWidth;
+    if (w <= 768) return;
+    var s = Math.min(w / 1920, 1);
+    var st = document.createElement('style');
+    st.textContent =
+      '@media (min-width: 769px){.page{transform:scale(' + s + ')}' +
+      '.stage{width:' + 1920 * s + 'px;height:' + 2838 * s + 'px}}';
+    document.head.appendChild(st);
+    document.documentElement.style.setProperty('--page-scale', s);
+  })();
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://vkv-dsgn.ru/#person",
+      "name": "Владимир Колмыков",
+      "url": "https://vkv-dsgn.ru/",
+      "image": "https://vkv-dsgn.ru/assets/images/opt/avatar_color-320.png",
+      "jobTitle": "Product / UX/UI Designer",
+      "email": "mailto:vkolm5@yandex.ru",
+      "knowsAbout": [
+        "Продуктовый дизайн",
+        "UX/UI-дизайн",
+        "Проектирование интерфейсов",
+        "Дизайн-системы",
+        "Прототипирование"
+      ],
+      "sameAs": [
+        "https://t.me/vkv_dsgn",
+        "https://www.linkedin.com/in/vkv-dsgn"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://vkv-dsgn.ru/#website",
+      "url": "https://vkv-dsgn.ru/",
+      "name": "Владимир Колмыков — портфолио",
+      "inLanguage": "ru-RU",
+      "author": { "@id": "https://vkv-dsgn.ru/#person" }
+    }
+  ]
+}
+</script></head>
 <body>
 <div class="loader" id="loader" role="status" aria-live="polite" aria-label="Загрузка страницы">
   <div class="ld-glow" aria-hidden="true">
@@ -46,7 +105,12 @@
     </div>
 
     <div class="hero-offer js-reveal" data-name="block-hero_offer">
-      <h1 class="hero-offer__title" aria-label="Дизайн, который решает задачи бизнеса"><span id="hero-title-text" aria-hidden="true"></span><span class="caret" aria-hidden="true"></span></h1>
+      <!-- Текст заголовка лежит в разметке, а не подставляется скриптом:
+           иначе поисковик видит пустой H1 (эффект печати стартует через
+           несколько секунд, уже после заставки). startTypewriter() в
+           script.js сначала стирает эту строку, затем печатает её заново —
+           анимация та же, но страница осмысленна и без JS. -->
+      <h1 class="hero-offer__title" aria-label="Дизайн, который решает задачи бизнеса"><span id="hero-title-text">Дизайн, который решает задачи бизнеса</span><span class="caret" aria-hidden="true"></span></h1>
     </div>
 
     <div class="brand-identity js-reveal js-reveal--slow" data-name="brand_identity">
@@ -55,8 +119,14 @@
     </div>
 
     <div class="brand-avatar js-reveal js-reveal--slow" data-name="brand_avatar">
-      <img src="assets/images/avatar.png" alt="Владимир Колмыков" class="brand-avatar__img brand-avatar__img--bw">
-      <img src="assets/images/avatar_color.png" alt="" class="brand-avatar__img brand-avatar__img--color">
+      <picture>
+        <source type="image/webp" srcset="assets/images/opt/avatar-320.webp">
+        <img src="assets/images/opt/avatar-320.png" alt="Владимир Колмыков" class="brand-avatar__img brand-avatar__img--bw" width="320" height="320" decoding="async">
+      </picture>
+      <picture>
+        <source type="image/webp" srcset="assets/images/opt/avatar_color-320.webp">
+        <img src="assets/images/opt/avatar_color-320.png" alt="" class="brand-avatar__img brand-avatar__img--color" width="320" height="320" decoding="async">
+      </picture>
     </div>
 
     <span class="brand-letter-pos brand-letter-pos--v-right js-reveal" aria-hidden="true"><span class="brand-letter magnet-btn">V</span></span>
@@ -84,7 +154,12 @@
             <div class="card__media card__media--1 t-tilt" data-name="card_media">
               <div class="t-tilt-shift">
                 <div class="t-tilt-card">
-                  <img src="assets/images/card-skoutai.png" alt="SkoutAI" class="card__media-img card__media-img--cover">
+                  <picture>
+                    <source type="image/webp" media="(max-width: 768px)" srcset="assets/images/opt/card-skoutai-mobile.webp">
+                    <source type="image/webp" srcset="assets/images/opt/card-skoutai-desktop.webp">
+                    <source media="(max-width: 768px)" srcset="assets/images/opt/card-skoutai-mobile.png">
+                    <img src="assets/images/opt/card-skoutai-desktop.png" alt="SkoutAI" class="card__media-img card__media-img--cover" width="1200" height="675" fetchpriority="high" decoding="async">
+                  </picture>
                   <div class="t-tilt-glare"></div>
                 </div>
               </div>
@@ -110,8 +185,10 @@
               <div class="t-tilt-shift">
                 <div class="t-tilt-card">
                   <picture>
-                    <source media="(max-width: 768px)" srcset="assets/images/card-baucentr-mobile.png">
-                    <img src="assets/images/card-baucentr-desktop.png" alt="Бауцентр" class="card__media-img card__media-img--cover">
+                    <source type="image/webp" media="(max-width: 768px)" srcset="assets/images/opt/card-baucentr-mobile.webp">
+                    <source type="image/webp" srcset="assets/images/opt/card-baucentr-desktop.webp">
+                    <source media="(max-width: 768px)" srcset="assets/images/opt/card-baucentr-mobile.png">
+                    <img src="assets/images/opt/card-baucentr-desktop.png" alt="Бауцентр" class="card__media-img card__media-img--cover" width="1200" height="924" decoding="async">
                   </picture>
                   <div class="t-tilt-glare"></div>
                 </div>

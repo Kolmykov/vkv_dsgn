@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Бауцентр — редизайн интернет-магазина — Владимир Колмыков</title>
 <meta name="description" content="Редизайн интернет-магазина строительных материалов: чёткая визуальная иерархия и фокус на товаре вместо визуального шума.">
+<link rel="canonical" href="https://vkv-dsgn.ru/cases/baucentr.html">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://vkv-dsgn.ru/cases/baucentr.html">
 <meta property="og:site_name" content="Владимир Колмыков">
@@ -19,18 +20,41 @@
 <meta name="twitter:title" content="Бауцентр — редизайн интернет-магазина — Владимир Колмыков">
 <meta name="twitter:description" content="Редизайн интернет-магазина строительных материалов: чёткая визуальная иерархия и фокус на товаре вместо визуального шума.">
 <meta name="twitter:image" content="https://vkv-dsgn.ru/assets/images/card-baucentr.png">
-<link rel="icon" type="image/png" href="../assets/images/avatar_color.png">
-<link rel="apple-touch-icon" href="../assets/images/avatar_color.png">
+<link rel="icon" type="image/png" href="../assets/images/opt/avatar_color-320.png">
+<link rel="apple-touch-icon" href="../assets/images/opt/avatar_color-320.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Piazzolla:wght@400;500&display=swap" rel="stylesheet">
+<!-- Шрифты не блокируют первую отрисовку: media="print" снимает блокировку,
+     onload возвращает стили в дело (см. тот же приём на главной). -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Piazzolla:wght@400;500&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Piazzolla:wght@400;500&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Piazzolla:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="../css/styles.css">
 <link rel="stylesheet" href="../css/case.css">
-</head>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CreativeWork",
+  "name": "Редизайн интернет-магазина Бауцентр",
+  "headline": "Редизайн интернет-магазина Бауцентр",
+  "description": "Редизайн интернет-магазина строительных материалов: чёткая визуальная иерархия и фокус на товаре вместо визуального шума.",
+  "url": "https://vkv-dsgn.ru/cases/baucentr.html",
+  "image": "https://vkv-dsgn.ru/assets/images/card-baucentr.png",
+  "inLanguage": "ru-RU",
+  "datePublished": "2026",
+  "author": {
+    "@type": "Person",
+    "@id": "https://vkv-dsgn.ru/#person",
+    "name": "Владимир Колмыков",
+    "url": "https://vkv-dsgn.ru/"
+  },
+  "isPartOf": { "@id": "https://vkv-dsgn.ru/#website" }
+}
+</script></head>
 <body class="case--mobile">
 
   <nav class="case-nav">
-    <a href="../index.html#projects" class="case-nav__back underline-link js-reveal">
+    <a href="/#projects" class="case-nav__back underline-link js-reveal">
       <svg class="case-nav__back-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 10H3M10 3L3 10L10 17" stroke="#767676" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="case-nav__back-text">Все проекты</span>
     </a>
@@ -57,7 +81,7 @@
         <div class="case-body-group">
           <p class="case-body js-reveal">Редизайн интернет-магазина строительных материалов: чёткая визуальная иерархия и&nbsp;фокус на&nbsp;товаре вместо визуального шума.</p>
           <div class="case-shot case-shot--parallax js-reveal" style="height:600px; aspect-ratio:1080/600">
-            <img class="case-shot__img" src="../assets/images/cases/baucentr/obzor-hero-framed.png" alt="Бауцентр — обзор">
+            <picture><source type="image/webp" media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/opt/obzor-hero-framed-m.webp"><source type="image/webp" srcset="../assets/images/cases/baucentr/opt/obzor-hero-framed.webp"><img class="case-shot__img" src="../assets/images/cases/baucentr/obzor-hero-framed.png" alt="Бауцентр — обзор" decoding="async"></picture>
           </div>
         </div>
       </section>
@@ -90,11 +114,15 @@
           <p class="case-body">Главная проблема — отсутствие чёткой визуальной иерархии и&nbsp;фокуса на&nbsp;товаре.</p>
           <div class="case-shot case-compare" style="height:2240px; aspect-ratio:398/823">
             <picture>
-              <source media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/compare-before-mobile.png">
-              <img class="case-shot__img" src="../assets/images/cases/baucentr/compare-before.png" alt="Бауцентр — до редизайна">
-            </picture>
+                <source type="image/webp" media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/opt/compare-before-mobile-m.webp">
+                <source type="image/webp" srcset="../assets/images/cases/baucentr/opt/compare-before.webp">
+                <source media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/compare-before-mobile.png">
+                <img class="case-shot__img" src="../assets/images/cases/baucentr/compare-before.png" alt="Бауцентр — до редизайна">
+              </picture>
             <div class="case-compare__after">
               <picture>
+                <source type="image/webp" media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/opt/compare-after-mobile-m.webp">
+                <source type="image/webp" srcset="../assets/images/cases/baucentr/opt/compare-after.webp">
                 <source media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/compare-after-mobile.png">
                 <img class="case-shot__img" src="../assets/images/cases/baucentr/compare-after.png" alt="Бауцентр — после редизайна">
               </picture>
@@ -118,7 +146,7 @@
             <li>Принято решение сделать акцент на&nbsp;визуальной чистоте и&nbsp;фокусе на&nbsp;товаре</li>
           </ul>
           <div class="case-shot" style="height:622px; aspect-ratio:1080/622">
-            <img class="case-shot__img" src="../assets/images/cases/baucentr/competitors.png" alt="Анализ конкурентов Бауцентр">
+            <picture><source type="image/webp" media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/opt/competitors-m.webp"><source type="image/webp" srcset="../assets/images/cases/baucentr/opt/competitors.webp"><img class="case-shot__img" src="../assets/images/cases/baucentr/competitors.png" alt="Анализ конкурентов Бауцентр" decoding="async" loading="lazy"></picture>
           </div>
           <p class="case-label">Мудборд и&nbsp;референсы</p>
           <ul class="case-list">
@@ -127,7 +155,7 @@
             <li>Примеры нестандартных, но&nbsp;аккуратных визуальных решений</li>
           </ul>
           <div class="case-shot" style="height:622px; aspect-ratio:1080/622">
-            <img class="case-shot__img" src="../assets/images/cases/baucentr/moodboard.png" alt="Мудборд Бауцентр">
+            <picture><source type="image/webp" media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/opt/moodboard-m.webp"><source type="image/webp" srcset="../assets/images/cases/baucentr/opt/moodboard.webp"><img class="case-shot__img" src="../assets/images/cases/baucentr/moodboard.png" alt="Мудборд Бауцентр" decoding="async" loading="lazy"></picture>
           </div>
         </div>
       </section>
@@ -151,12 +179,12 @@
           <p class="case-body">Переработана структура каталога — в&nbsp;нём стало легче ориентироваться.</p>
           <div class="case-shot" style="height:751px; aspect-ratio:1080/751">
             <div class="case-shot__crop">
-              <img src="../assets/images/cases/baucentr/navigation.png" style="height:100.16%; left:0.01%; top:-0.18%; width:99.99%;" alt="Структура каталога Бауцентр">
+              <picture><source type="image/webp" media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/opt/navigation-m.webp"><source type="image/webp" srcset="../assets/images/cases/baucentr/opt/navigation.webp"><img src="../assets/images/cases/baucentr/navigation.png" style="height:100.16%; left:0.01%; top:-0.18%; width:99.99%;" alt="Структура каталога Бауцентр" decoding="async" loading="lazy"></picture>
             </div>
           </div>
           <p class="case-body">Проработана последовательность пользовательского пути:<br>Каталог → Фильтрация → Карточка товара → Корзина → Оформление заказа.</p>
           <div class="case-shot" style="height:4278px; aspect-ratio:1080/4278">
-            <img class="case-shot__img" src="../assets/images/cases/baucentr/user-journey.png" alt="Путь пользователя Бауцентр">
+            <picture><source type="image/webp" media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/opt/user-journey-m.webp"><source type="image/webp" srcset="../assets/images/cases/baucentr/opt/user-journey.webp"><img class="case-shot__img" src="../assets/images/cases/baucentr/user-journey.png" alt="Путь пользователя Бауцентр" decoding="async" loading="lazy"></picture>
           </div>
         </div>
 
@@ -171,7 +199,7 @@
           <p class="case-body">Фильтры помогают пользователю быстро сузить выбор и&nbsp;принять решение.</p>
           <div class="case-shot" style="height:2885px; aspect-ratio:1080/2885">
             <div class="case-shot__crop">
-              <img src="../assets/images/cases/baucentr/filters.png" style="height:100.87%; left:-5.95%; top:0; width:112.99%;" alt="Фильтрация Бауцентр">
+              <picture><source type="image/webp" media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/opt/filters-m.webp"><source type="image/webp" srcset="../assets/images/cases/baucentr/opt/filters.webp"><img src="../assets/images/cases/baucentr/filters.png" style="height:100.87%; left:-5.95%; top:0; width:112.99%;" alt="Фильтрация Бауцентр" decoding="async" loading="lazy"></picture>
             </div>
           </div>
         </div>
@@ -188,7 +216,7 @@
           <p class="case-body">Взгляд пользователя быстро проходит по&nbsp;важным зонам.</p>
           <div class="case-shot" style="height:3455px; aspect-ratio:1080/3455">
             <div class="case-shot__crop">
-              <img src="../assets/images/cases/baucentr/product-card.png" style="height:100.21%; left:-6.17%; top:0; width:112.81%;" alt="Карточка товара Бауцентр">
+              <picture><source type="image/webp" media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/opt/product-card-m.webp"><source type="image/webp" srcset="../assets/images/cases/baucentr/opt/product-card.webp"><img src="../assets/images/cases/baucentr/product-card.png" style="height:100.21%; left:-6.17%; top:0; width:112.81%;" alt="Карточка товара Бауцентр" decoding="async" loading="lazy"></picture>
             </div>
           </div>
         </div>
@@ -204,12 +232,12 @@
           <p class="case-body">Пользователь сразу видит итоговую сумму и&nbsp;выгоду, не&nbsp;отвлекаясь на&nbsp;второстепенные детали. Процесс оформления состоит из&nbsp;понятных шагов: ввод контактных данных, выбор способа получения, выбор способа оплаты. Доступно оформление без&nbsp;авторизации — тогда начисление и&nbsp;списание бонусов недоступны, об&nbsp;этом сообщает предупреждающая плашка.</p>
           <div class="case-shot" style="height:3226px; aspect-ratio:1080/3226">
             <div class="case-shot__crop">
-              <img src="../assets/images/cases/baucentr/cart.png" style="height:100.43%; left:-6.23%; top:0.01%; width:112.99%;" alt="Корзина Бауцентр">
+              <picture><source type="image/webp" media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/opt/cart-m.webp"><source type="image/webp" srcset="../assets/images/cases/baucentr/opt/cart.webp"><img src="../assets/images/cases/baucentr/cart.png" style="height:100.43%; left:-6.23%; top:0.01%; width:112.99%;" alt="Корзина Бауцентр" decoding="async" loading="lazy"></picture>
             </div>
           </div>
           <div class="case-shot" style="height:2534px; aspect-ratio:1080/2534">
             <div class="case-shot__crop">
-              <img src="../assets/images/cases/baucentr/checkout.png" style="height:100.98%; left:-6.9%; top:-0.02%; width:113.38%;" alt="Оформление заказа Бауцентр">
+              <picture><source type="image/webp" media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/opt/checkout-m.webp"><source type="image/webp" srcset="../assets/images/cases/baucentr/opt/checkout.webp"><img src="../assets/images/cases/baucentr/checkout.png" style="height:100.98%; left:-6.9%; top:-0.02%; width:113.38%;" alt="Оформление заказа Бауцентр" decoding="async" loading="lazy"></picture>
             </div>
           </div>
         </div>
@@ -227,7 +255,7 @@
           </ul>
           <p class="case-body">Это&nbsp;позволило обеспечить консистентность интерфейса и&nbsp;упростить масштабирование.</p>
           <div class="case-shot" style="height:1513px; aspect-ratio:1080/1513">
-            <img class="case-shot__img" src="../assets/images/cases/baucentr/ui-kit.png" alt="UI-kit Бауцентр">
+            <picture><source type="image/webp" media="(max-width: 768px)" srcset="../assets/images/cases/baucentr/opt/ui-kit-m.webp"><source type="image/webp" srcset="../assets/images/cases/baucentr/opt/ui-kit.webp"><img class="case-shot__img" src="../assets/images/cases/baucentr/ui-kit.png" alt="UI-kit Бауцентр" decoding="async" loading="lazy"></picture>
           </div>
         </div>
       </section>
@@ -258,10 +286,10 @@
         </span>
       </button>
       <nav class="float-menu__dropdown" id="float-menu-dropdown" aria-hidden="true">
-        <a href="../index.html#hero" class="float-menu__dropdown-item"><span class="float-menu__dropdown-item-inner underline-link">Главная</span></a>
-        <a href="../index.html#projects" class="float-menu__dropdown-item"><span class="float-menu__dropdown-item-inner underline-link">Проекты</span></a>
-        <a href="../index.html#about" class="float-menu__dropdown-item"><span class="float-menu__dropdown-item-inner underline-link">Обо мне</span></a>
-        <a href="../index.html#contacts" class="float-menu__dropdown-item"><span class="float-menu__dropdown-item-inner underline-link">Контакты</span></a>
+        <a href="/#hero" class="float-menu__dropdown-item"><span class="float-menu__dropdown-item-inner underline-link">Главная</span></a>
+        <a href="/#projects" class="float-menu__dropdown-item"><span class="float-menu__dropdown-item-inner underline-link">Проекты</span></a>
+        <a href="/#about" class="float-menu__dropdown-item"><span class="float-menu__dropdown-item-inner underline-link">Обо мне</span></a>
+        <a href="/#contacts" class="float-menu__dropdown-item"><span class="float-menu__dropdown-item-inner underline-link">Контакты</span></a>
         <a href="../assets/files/%D0%9A%D0%BE%D0%BB%D0%BC%D1%8B%D0%BA%D0%BE%D0%B2%20%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80%20(CV).pdf" target="_blank" rel="noopener noreferrer" class="float-menu__dropdown-item">
           <span class="float-menu__dropdown-item-inner float-menu__dropdown-item-inner--cv underline-link">
             CV

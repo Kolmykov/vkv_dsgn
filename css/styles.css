@@ -367,7 +367,13 @@ img {
   position: absolute;
   inset: 0;
   border-radius: 2px;
-  background-image: url('../assets/images/avatar_color.png');
+  /* Тот же кадр, что у .brand-avatar__img--color, но лёгкий: 320px и
+     webp (png — запасной вариант для старых браузеров). */
+  background-image: url('../assets/images/opt/avatar_color-320.png');
+  background-image: image-set(
+    url('../assets/images/opt/avatar_color-320.webp') type('image/webp'),
+    url('../assets/images/opt/avatar_color-320.png') type('image/png')
+  );
   background-size: cover;
   background-position: center;
   opacity: 0;
