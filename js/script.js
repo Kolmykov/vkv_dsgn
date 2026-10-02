@@ -60,8 +60,10 @@ function startTypewriter() {
       setTimeout(function () {
         staggerReveal(['.brand-avatar', '.brand-identity'], 500, function (el, selector) {
           if (selector !== '.brand-identity') return;
-          // Имя с ролью — последний шаг каскада hero: только за ним идут
-          // блоки, видимые на первом экране (проекты на мобильной версии).
+          // Имя с ролью — последний шаг каскада hero: за ним проявляются
+          // пункты меню в шапке и блоки, видимые на первом экране
+          // (проекты на мобильной версии).
+          setTimeout(revealHeaderNav, 500);
           setTimeout(startScrollReveal, 400);
           // Автоцикл decoder-эффекта запускаем только когда блок с ролью
           // реально закончил проявляться (его transition — 1.1s, см.
@@ -97,22 +99,40 @@ function staggerReveal(selectors, stepMs, onEach) {
 // Последовательное появление контента hero после того, как лоадер полностью
 // раскрылся: элементы проявляются (blur+fade) по очереди, а не все разом —
 // в духе плавных построчных reveal-анимаций (ориентир: kei-inc.jp).
-function revealHero() {
-  var order = [
-    '.brand-letter-pos--v-left',
-    '.header-nav__item--projects',
+// Пункты меню — последний шаг всей заставки, уже после имени с ролью, и
+// строго сверху вниз, как они стоят в шапке: Главная (top: 1px),
+// Проекты (45px), Обо мне (89px), Контакты (133px).
+function revealHeaderNav() {
+  staggerReveal([
     '.header-nav__item--active',
+    '.header-nav__item--projects',
     '.header-nav__item--about',
     '.header-nav__item--contacts',
-    '.brand-letter-pos--k',
-    '.brand-letter-pos--v-right',
-    '.hero-offer',
+  ], 200);
+}
+
+function revealHero() {
+  // Порядок и паузы заданы явно, а не одним общим шагом: сначала целиком
+  // складывается монограмма (три буквы, крупный шаг — глаз успевает
+  // прочитать каждую), затем печатается заголовок. Дальше эстафету
+  // принимает startTypewriter(): подзаголовок → фото → имя с ролью →
+  // revealHeaderNav().
+  var timeline = [
+    ['.brand-letter-pos--v-left', 0],
+    ['.brand-letter-pos--k', 300],
+    ['.brand-letter-pos--v-right', 600],
+    ['.hero-offer', 1000],
   ];
 
-  staggerReveal(order, 100, function (el, selector) {
-    if (selector === '.hero-offer') {
-      startTypewriter();
-    }
+  timeline.forEach(function (step) {
+    setTimeout(function () {
+      var el = document.querySelector(step[0]);
+      if (!el) return;
+      el.classList.add('is-visible');
+      if (step[0] === '.hero-offer') {
+        startTypewriter();
+      }
+    }, step[1]);
   });
 }
 
@@ -286,7 +306,7 @@ var startScrollReveal = function () {};
   };
 })();
 
-// Loader: держит экран загрузки минимум 3 секунды, даже если страница
+// Loader: держит экран загрузки минимум 2 секунды, даже если страница
 // загрузилась быстрее — и не скрывает раньше, чем реально всё загрузится,
 // если это займёт дольше 3 секунд. После того как круговой reveal
 // полностью откроет сайт, запускает каскадное появление hero.
@@ -357,21 +377,49 @@ var startScrollReveal = function () {};
   var startTime = performance.now();
   var pageLoaded = false;
 
+  // Градиент над шапкой проявляется в середине пульсации (цикл кругов —
+  // 1.8s, см. echo в css), ещё на лоадере: к моменту, когда лоадер гаснет,
+  // свечение уже на экране и просто переходит в такое же на странице.
+  loader.style.setProperty('--ld-page-w', window.innerWidth + 'px');
+  setTimeout(function () {
+    loader.classList.add('is-glow');
+  }, 900);
+
+  // Сначала гаснет знак (0.5s, см. .is-fading в css), затем фон лоадера
+  // (0.6s), и уже под уходящим фоном начинают проявляться буквы hero —
+  // так переход читается как одно движение, без паузы между этапами.
+  var LOGO_FADE = 500;
+  var HERO_LEAD = 260;
+
   function hideLoader() {
-    loader.classList.add('is-hidden');
-    // Разблокируем скролл только когда круговой reveal (1.4s, см. .loader
-    // в css) реально закончился, а не в момент старта анимации — иначе
-    // почти полторы секунды экран ещё визуально закрыт лоадером, а
-    // прокрутить страницу за ним уже можно.
-    loader.addEventListener('transitionend', function handler() {
+    loader.classList.add('is-fading');
+    setTimeout(function () {
+      loader.classList.add('is-hidden');
+      setTimeout(revealHero, HERO_LEAD);
+    }, LOGO_FADE);
+
+    var finished = false;
+    function finish() {
+      if (finished) return;
+      finished = true;
       loader.style.display = 'none';
-      loader.removeEventListener('transitionend', handler);
+      loader.removeEventListener('transitionend', onEnd);
+      // Скролл разблокируем только когда лоадер действительно погас, а не
+      // в момент старта затухания — иначе страницу можно прокрутить ещё
+      // за закрытым экраном.
       unlockScroll();
-      revealHero();
       // На десктопе проекты ниже первого экрана — ждать конца каскада hero
       // не нужно (иначе при быстром скролле они бы не появлялись).
       if (!isMobileLayout()) startScrollReveal();
-    }, { once: true });
+    }
+    function onEnd(e) {
+      if (e.target !== loader || e.propertyName !== 'opacity') return;
+      finish();
+    }
+    loader.addEventListener('transitionend', onEnd);
+    // Подстраховка: во вкладке, открытой в фоне, переходы не идут и
+    // transitionend не приходит — страница всё равно разблокируется.
+    setTimeout(finish, LOGO_FADE + 1200);
   }
 
   function tryHide() {
@@ -386,6 +434,16 @@ var startScrollReveal = function () {};
 
   function onPageLoaded() {
     pageLoaded = true;
+    // При запросе уменьшенного движения не проигрываем заставку и печать
+    // заголовка: сначала ждём готовности основного контента, затем сразу
+    // показываем тот же конечный кадр, что и при переходе из страницы кейса.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      loader.style.display = 'none';
+      unlockScroll();
+      revealHeroInstant();
+      startScrollReveal();
+      return;
+    }
     tryHide();
   }
 

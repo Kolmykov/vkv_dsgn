@@ -1283,15 +1283,71 @@ img {
   align-items: center;
   justify-content: center;
   background: var(--color-bg);
-  /* Круговой reveal сходится в левый верхний угол (не в логотип по центру),
-     как переход темы на jib.design — та же кривая
-     cubic-bezier(0.65, 0, 0.35, 1). */
-  clip-path: circle(150% at 0% 0%);
-  transition: clip-path 1.4s cubic-bezier(0.65, 0, 0.35, 1);
+  /* Уход лоадера — простое затухание, без шторок и перелистываний:
+     сначала гаснет сам знак (.is-fading), следом фон (.is-hidden), и
+     под ним уже проявляются буквы hero. */
+  opacity: 1;
+  transition: opacity 0.6s ease-out;
+}
+/* Тот же градиент, что светит над шапкой (.hero-glow, та же картинка):
+   проявляется в середине пульсации, ещё на лоадере, и дальше просто
+   передаёт эстафету настоящему свечению страницы под ним. */
+/* Коробка повторяет саму страницу: до 1920px это ширина окна (ровно во
+   столько .page и масштабируется), дальше — фиксированные 1920 по центру.
+   Поэтому проценты ниже дают ровно ту же рамку, что у .hero-glow__img на
+   странице, и при уходе лоадера свечение не прыгает. Высота равна ширине
+   только затем, чтобы вертикальный процент считался от того же числа. */
+.ld-glow {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  /* --ld-page-w ставит script.js (ширина окна вместе с полосой прокрутки —
+     именно от неё считается масштаб .page); 100vw здесь не подходит: с
+     scrollbar-gutter он на 15px меньше, и свечение было бы чуть мельче
+     страничного. */
+  width: min(1920px, var(--ld-page-w, 100vw));
+  aspect-ratio: 1;
+  height: auto;
+  transform: translateX(-50%);
+  /* Лоадер шире вьюпорта на полосу прокрутки (её место зарезервировано
+     на html), поэтому центр у него смещён относительно центра страницы —
+     возвращаем на место. */
+  margin-left: calc((var(--ld-page-w, 100vw) - 100vw) / 2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.4s ease-out;
+}
+.loader.is-glow .ld-glow {
+  opacity: 0.6;
+}
+.ld-glow__img {
+  position: absolute;
+  display: block;
+  left: -15.21%;
+  top: -35.35%;
+  width: 134.84%;
+  height: auto;
+}
+
+/* Логотип и круги вокруг него — один слой (.ld-echo), гаснут вместе. */
+.loader.is-fading .ld-echo {
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
 }
 .loader.is-hidden {
-  clip-path: circle(0% at 0% 0%);
+  opacity: 0;
   pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader,
+  .loader.is-fading .ld-echo {
+    transition-duration: 0.3s;
+  }
+  .ld-echo::before,
+  .ld-echo::after {
+    animation: none;
+  }
 }
 
 /* Последовательное появление контента hero после лоадера: элементы
@@ -1299,7 +1355,12 @@ img {
 .js-reveal {
   opacity: 0;
   filter: blur(8px);
-  transition: opacity 0.7s cubic-bezier(0.65, 0, 0.35, 1), filter 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+  transition: opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1), filter 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Буквы монограммы — самые крупные элементы первого экрана, им нужен
+   самый длинный и мягкий выход, иначе появление читается как щелчок. */
+.brand-letter-pos.js-reveal {
+  transition-duration: 1.6s;
 }
 .js-reveal.is-visible {
   opacity: 1;
@@ -1779,6 +1840,21 @@ img {
      блики не деформировались непропорциональным масштабом. */
   .hero-glow__inner {
     inset: -105.57px -133.93px -273.53px -223.94px;
+  }
+  /* Копия свечения на лоадере — по тем же числам, что мобильный
+     .hero-glow (ширина 431.47 + охват по бокам 223.94 и 133.93). */
+  .ld-glow {
+    width: 789.34px;
+    height: auto;
+    aspect-ratio: auto;
+    margin-left: 0;
+    left: 50%;
+    top: -83.57px;
+    transform: translateX(calc(-50% - 45px));
+  }
+  .ld-glow__img {
+    position: static;
+    width: 100%;
   }
 
   .hero-offer {
